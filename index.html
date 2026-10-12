@@ -52,7 +52,7 @@ h3 { font-size: 19px; font-weight: 600 }
 .date { color: var(--muted); font-size: 14px }
 .num { font-variant-numeric: tabular-nums }
 .label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600 }
-.stack { display: grid; gap: 12px }
+.stack { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr) }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px }
 .muted { color: var(--muted) }
 .small { font-size: 14px }
@@ -141,6 +141,11 @@ ul.shop label > span { min-width: 0 }
 ul.shop input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--good) }
 ul.shop input:checked + span { opacity: .45; text-decoration: line-through }
 
+table.plan.grid { font-size: 13px; min-width: 420px }
+table.plan.grid th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding-bottom: 4px }
+table.plan.grid td { padding-right: 8px; width: auto }
+table.plan.grid tr.now td { font-weight: 700 }
+
 /* bottom bars */
 nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr); padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5 }
 nav.tabs button { height: 60px; border: 0; background: none; color: var(--muted); font: 600 14px var(--display); text-transform: uppercase; letter-spacing: .04em; cursor: pointer; display: grid; place-items: center; gap: 0; padding-top: 6px }
@@ -199,7 +204,7 @@ const W = {
     { id: "lateral", n: "Lateral raises", unit: "lb per hand", sets: 3, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 },
     { id: "facepull", n: "Face pulls", sets: 2, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 } ] },
 };
-const APP_VERSION = "2026.10.11-1";
+const APP_VERSION = "2026.10.11-2203";
 const ORDER = ["LA", "UA", "LB", "UB"];
 const DEFAULTS = { calTarget: 2200, protein: 160, fat: 65, groceryBudget: 350, diningBudget: 400 };
 
@@ -461,10 +466,10 @@ function renderFood() {
 // ---------- plan tab ----------
 function renderPlan() {
   const s = settings();
-  const rows = [["Mon", "LA"], ["Tue", "UA"], ["Wed", null, "Rest or a 30–45 min walk"], ["Thu", "LB"], ["Fri", "UB"], ["Sat", null, "Optional: 30–45 min easy run, bike or hike"], ["Sun", null, "Rest"]];
-  return `<section class="card"><h2>The week</h2><table class="plan" style="margin-top:6px"><tbody>${rows.map(([d, k, t]) => `<tr><td>${d}</td><td>${k ? `<span class="dot" style="--c:${W[k].c}"></span><b>${W[k].name}</b><br><span class="small muted">${esc(W[k].cardio)}</span>` : `<span class="muted">${t}</span>`}</td></tr>`).join("")}</tbody></table>
+  const rows = [["Mon", "LA", "Day job 8–3"], ["Tue", "UA", "Day job 8–3 · cook night"], ["Wed", null, "Rest. Day job 8–3, night job until 1. Pack lunch and dinner."], ["Thu", "LB", "Day job 8–3"], ["Fri", "UB", "Day job 8–3 · cook night"], ["Sat", null, "Rest. Day job 10–1, night job until 1. Pack lunch and dinner."], ["Sun", null, "Rest. Work until about 8. Pack lunch and dinner."]];
+  return `<section class="card"><h2>The week</h2><table class="plan" style="margin-top:6px"><tbody>${rows.map(([d, k, t]) => `<tr><td>${d}</td><td>${k ? `<span class="dot" style="--c:${W[k].c}"></span><b>${W[k].name}</b> <span class="small muted">· ${t}</span><br><span class="small muted">${esc(W[k].cardio)}</span>` : `<span class="muted">${t}</span>`}</td></tr>`).join("")}</tbody></table>
     <p class="small muted" style="margin:8px 0 0">Plus 8–10k steps a day. Add cardio time slowly, about 10% a week.</p></section>
-  <section class="card"><h2>Eating</h2><p class="small" style="margin:6px 0 0">Targets: ${s.calTarget.toLocaleString()} kcal average and ${s.protein} g protein a day. The Meals tab has this week's menu, recipes and grocery list. The menu changes every Sunday, and you can swap any recipe.</p></section>
+  <section class="card"><h2>Eating</h2><p class="small" style="margin:6px 0 0">Targets: ${s.calTarget.toLocaleString()} kcal average and ${s.protein} g protein a day. You cook Tuesday and Friday after lifting. The Meals tab has both cook plans, a technique of the week, and one grocery list. The menu rotates every week, and you can swap any recipe.</p></section>
   <section class="card"><h2>Your data</h2>
     <p class="small" style="margin:6px 0 10px">Everything is saved on this phone. Make a backup every week or two, and before you get a new phone. Send the backup file to Claude when you want a progress review.</p>
     <div class="form"><button class="secondary" id="backup">Save backup</button><label class="secondary" style="display:inline-flex;align-items:center" for="restore">Restore from backup</label><input type="file" id="restore" accept="application/json,.json" hidden></div>
@@ -514,68 +519,130 @@ const ING = {
   pb: ["Peanut butter", "tbsp", .07, 95, 3.5, 71, "40 oz jar", 1, "Pantry"],
   oil: ["Olive oil", "tbsp", .206, 120, 0, 34, "17 oz bottle", 1, "Pantry"],
   honey: ["Honey", "tbsp", .10, 64, 0, 24, "12 oz bottle", 1, "Pantry"],
+  miso: ["White miso paste", "tbsp", .21, 35, 2, 24, "14 oz tub", 1, "Pantry"],
+  butter: ["Butter", "tbsp", .125, 100, 0, 32, "1 lb pack", 1, "Dairy & eggs"],
+  lemon: ["Lemons", "", .5, 17, .6, 1, "each", 0, "Produce"],
 };
 const AISLES = ["Produce", "Frozen", "Dairy & eggs", "Canned & jarred", "Bread & grains", "Pantry"];
 const SPICE_ALLOWANCE = 4; // $/week for spices, sauces, condiments (same as the workbook)
 
-// recipes: quantities are per serving
+// recipes: quantities are per serving. kind: b = breakfast, fish = seafood main, veg = keeps 5 days
+// prep steps are tagged by phase: 1 = start first (oven, pots), 2 = while that cooks, 3 = portion and pack
 const RECIPES = [
-  { id: "scramble", slot: "b", n: "Veggie egg scramble", time: "10 min", ing: [["egg", 3], ["spinach", 50], ["pepper", .5], ["bread", 1], ["cottage", .5]], pantry: "salt, pepper, hot sauce",
-    steps: ["Sauté the diced pepper in a nonstick pan for 2–3 min, then add the spinach until it wilts.", "Add the beaten eggs and stir gently over medium-low until just set.", "Serve with toast and cottage cheese on the side."] },
-  { id: "oats", slot: "b", n: "Protein overnight oats", time: "5 min, the night before", ing: [["oats", 50], ["whey", 1], ["yogurt", .5], ["berries", .5]], pantry: "cinnamon",
-    steps: ["In a jar, stir the oats, whey, yogurt and ½ cup water until smooth.", "Top with frozen berries, cover and refrigerate overnight.", "Make 3–4 jars at once. They keep 4 days."] },
-  { id: "burrito", slot: "b", n: "Freezer breakfast burritos", time: "Batch: 30 min", ing: [["egg", 3], ["tortilla", 1], ["beans", .2], ["cheese", .5], ["salsa", 30]], pantry: "cumin, chili powder",
-    steps: ["Scramble all the eggs with a pinch of cumin and chili powder.", "Warm the drained beans. Fill each tortilla with eggs, beans, cheese and salsa, then roll tightly.", "Wrap each one in foil and freeze.", "In the morning, unwrap, wrap in a paper towel and microwave 2–2½ min, flipping halfway."] },
-  { id: "cottagebowl", slot: "b", n: "Cottage cheese berry bowl", time: "5 min", ing: [["cottage", 1], ["whey", .5], ["berries", 1], ["oats", 30], ["honey", 1]], pantry: "cinnamon",
-    steps: ["Thaw the berries overnight in the fridge, or microwave them for 45 seconds.", "Stir half a scoop of whey into the cottage cheese.", "Top with berries, raw oats and honey."] },
-  { id: "eggmuffins", slot: "b", n: "Egg muffins with yogurt", time: "Batch: 30 min", ing: [["egg", 3], ["pepper", .25], ["onion", .25], ["spinach", 30], ["cheese", .5], ["yogurt", .5], ["berries", .5]], pantry: "salt, pepper, cooking spray",
-    steps: ["Heat the oven to 375°F and grease a 12-cup muffin tin.", "Dice the pepper and onion, chop the spinach, and divide among the cups with the cheese.", "Whisk the eggs with salt and pepper and pour them in until each cup is about ¾ full. Bake 20–22 min.", "Eat 3 a day, reheated for 30–45 seconds, with yogurt and berries. They keep 4 days in the fridge."] },
+  { id: "burrito", kind: "b", n: "Freezer breakfast burritos", active: 30, keeps: "Freezes for a month", ing: [["egg", 3], ["tortilla", 1], ["beans", .2], ["cheese", .5], ["salsa", 30]], pantry: "cumin, chili powder",
+    reheat: "From frozen: unwrap, wrap in a damp paper towel, microwave 2–2½ min, flipping halfway.",
+    prep: [[2, "Scramble all the eggs low and slow with cumin and chili powder, pulling them off while still slightly wet. Warm the beans."], [3, "Fill the tortillas with eggs, beans, cheese and salsa, roll them tight, wrap each in foil and freeze."]],
+    tech: ["Soft-scrambled eggs", "Low heat, constant stirring, and pull the eggs off while they still look a little wet. Leftover heat finishes them. High heat makes them rubbery and watery."] },
+  { id: "eggmuffins", kind: "b", n: "Egg muffins with yogurt", active: 15, keeps: "4 days in the fridge", ing: [["egg", 3], ["pepper", .25], ["onion", .25], ["spinach", 30], ["cheese", .5], ["yogurt", .5], ["berries", .5]], pantry: "salt, pepper, cooking spray",
+    reheat: "Microwave 30–45 sec. Eat with Greek yogurt and berries.",
+    prep: [[1, "Heat the oven to 375°F. Dice the pepper and onion small, chop the spinach, and divide into a greased muffin tin with the cheese. Whisk the eggs with salt and pepper, fill each cup ¾ full, and bake 20–22 min."], [3, "Cool on a rack, then refrigerate 3 per day."]],
+    tech: ["A small, even dice", "Cut the pepper into strips, then across into small squares. Even pieces cook evenly, so nothing is crunchy next to something mushy. Curl the fingertips of your holding hand under, away from the blade."] },
+  { id: "oats", kind: "b", n: "Protein overnight oats", active: 10, keeps: "4 days in the fridge", ing: [["oats", 50], ["whey", 1], ["yogurt", .5], ["berries", .5]], pantry: "cinnamon",
+    reheat: "Eat cold, straight from the fridge.",
+    prep: [[3, "In each jar, stir the oats, whey, yogurt and ½ cup water until smooth. Top with berries and refrigerate."]],
+    tech: ["Getting the ratio right", "One part oats to one part liquid (water plus yogurt) sets up thick and spoonable overnight. Too runny? Add a spoon of oats. Too thick? A splash of water in the morning."] },
+  { id: "cottagebowl", kind: "b", n: "Cottage cheese berry bowls", active: 5, keeps: "4 days in the fridge", ing: [["cottage", 1], ["whey", .5], ["berries", 1], ["oats", 30], ["honey", 1]], pantry: "cinnamon, pinch of salt",
+    reheat: "Nothing to heat. Add the oats and honey in the morning.",
+    prep: [[3, "Stir half a scoop of whey into each portion of cottage cheese and top with berries. Bag the oats separately so they stay crunchy."]],
+    tech: ["Balancing sweet and salty", "A pinch of salt and cinnamon makes fruit taste sweeter, so you need less honey."] },
+  { id: "pancakes", kind: "b", n: "Banana protein pancakes", active: 25, keeps: "4 days in the fridge, or freeze", ing: [["oats", 40], ["egg", 2], ["banana", 1], ["whey", .5], ["yogurt", .5], ["berries", .5]], pantry: "cinnamon, cooking spray",
+    reheat: "Microwave 45–60 sec or toast them. Top with Greek yogurt and berries.",
+    prep: [[2, "Blend the oats, eggs, bananas and whey into a batter. Cook ¼-cup pancakes in a greased pan over medium-low until bubbles appear and the edges look dry, then flip."], [3, "Cool, stack with paper towels between them, and refrigerate."]],
+    tech: ["Controlling pan heat", "Medium-low is the secret. If the outside browns before bubbles show on top, the pan is too hot. Cook one test pancake first and adjust."] },
 
-  { id: "tunabowl", slot: "l", n: "Tuna rice bowl", time: "Meal prep: 25 min", ing: [["tuna", 1], ["rice", 75], ["edamame", 75], ["fveg", 100], ["oil", .5]], pantry: "soy sauce, sriracha, garlic powder",
-    steps: ["Cook the rice: 1 part rice to 2 parts water, covered, 18 min.", "Microwave or steam the edamame and frozen vegetables.", "Divide the rice, vegetables and edamame into containers. Add the tuna, soy sauce and sriracha when you eat so the rice doesn't go soggy."] },
-  { id: "lentilsoup", slot: "l", n: "Lentil vegetable soup", time: "Batch: 40 min", ing: [["lentils", 62.5], ["tomatoes", .25], ["onion", .25], ["fveg", 75], ["oil", .25], ["bread", 2], ["yogurt", .5]], pantry: "garlic, cumin, smoked paprika, bouillon cube",
-    steps: ["Sauté the diced onion in the oil for 4 min, then add the garlic and spices for 1 min.", "Add the rinsed lentils, tomatoes, 6 cups of water and the bouillon. Simmer 25 min.", "Add the frozen vegetables and cook 5 min more. Season with salt and a splash of vinegar.", "Serve with a big spoonful of Greek yogurt on top and 2 slices of toast."] },
-  { id: "salmoncakes", slot: "l", n: "Salmon cakes with slaw", time: "30 min", ing: [["csalmon", .5], ["egg", 1], ["oats", 20], ["oil", .5], ["slaw", 150], ["yogurt", .25], ["lime", .25]], pantry: "garlic powder, paprika, mustard",
-    steps: ["Drain the canned salmon and mash it with the egg, oats and seasoning. Form 2 patties per serving.", "Pan-fry in the oil 3–4 min per side until golden.", "Toss the slaw with Greek yogurt, lime juice, salt and pepper.", "Pack 2 cakes with a big portion of slaw. Reheat the cakes for 60 seconds."] },
-  { id: "tunawrap", slot: "l", n: "Tuna chickpea wraps", time: "10 min", ing: [["tuna", 1], ["chickpeas", .33], ["tortilla", 2], ["spinach", 50], ["yogurt", .25], ["lime", .25]], pantry: "mustard, dill, salt, pepper",
-    steps: ["Mash the tuna and chickpeas with Greek yogurt, mustard, lime juice and dill.", "Spread over two tortillas, add spinach and roll up.", "The filling keeps 3 days. Pack it separately if you prep ahead."] },
-  { id: "shrimpbowl", slot: "l", n: "Shrimp burrito bowl", time: "Meal prep: 25 min", ing: [["shrimp", 5], ["rice", 60], ["beans", .25], ["fveg", 100], ["salsa", 50], ["avocado", .25], ["lime", .25]], pantry: "cumin, chili powder, garlic powder",
-    steps: ["Cook the rice. Thaw the shrimp under cold water for 5 min, pat dry and toss with the spices.", "Sear the shrimp in a hot pan 1–2 min per side.", "Warm the beans and frozen vegetables (a corn and pepper mix works well).", "Build bowls with rice, beans, vegetables, shrimp and salsa. Add avocado and lime when you eat."] },
+  { id: "tunabowl", kind: "fish", n: "Tuna rice bowls", active: 10, keeps: "4 days", ing: [["tuna", 1], ["rice", 75], ["edamame", 75], ["fveg", 100], ["oil", .5]], pantry: "soy sauce, sriracha, garlic powder",
+    reheat: "Microwave the rice and vegetables 2 min, then add the tuna, soy sauce and sriracha.",
+    prep: [[2, "Microwave the edamame and frozen vegetables and divide them over the rice."], [3, "Pack an unopened can of tuna with each container."]],
+    tech: ["Perfect rice", "Rinse until the water runs clear, use 1 part rice to 1¾–2 parts water, simmer covered 18 min, then rest 10 min off the heat without lifting the lid. Rinsing and resting keep it fluffy instead of gummy."] },
+  { id: "salmoncakes", kind: "fish", n: "Salmon cakes with crunchy slaw", active: 25, keeps: "3 days", ing: [["csalmon", .5], ["egg", 1], ["oats", 20], ["oil", .5], ["slaw", 150], ["yogurt", .25], ["lime", .25]], pantry: "garlic powder, paprika, mustard",
+    reheat: "Microwave the cakes 60–90 sec. Eat the slaw cold.",
+    prep: [[2, "Mash the drained salmon with the eggs, oats and seasoning. Rest 10 min so it binds, shape 2 patties per serving with wet hands, and pan-fry in the oil 3–4 min per side."], [3, "Toss the slaw with yogurt, lime juice, salt and pepper. Pack it separately so it stays crisp."]],
+    tech: ["Shaping and pan-frying patties", "Rest the mix so it holds together, wet your hands to shape, and don't flip until the patty releases from the pan on its own. If it sticks, it isn't ready."] },
+  { id: "shrimpbowl", kind: "fish", n: "Shrimp burrito bowls", active: 15, keeps: "3 days", ing: [["shrimp", 5], ["rice", 60], ["beans", .25], ["fveg", 100], ["salsa", 50], ["avocado", .25], ["lime", .25]], pantry: "cumin, chili powder, garlic powder",
+    reheat: "Microwave 90 sec. Add salsa, avocado and lime after.",
+    prep: [[2, "Thaw the shrimp under cold running water 5 min, pat very dry and toss with the spices. Sear in a hot pan 1–2 min per side. Warm the beans and frozen vegetables."], [3, "Divide rice, beans, vegetables and shrimp. Salsa on the side. Cut the avocado the day you eat it."]],
+    tech: ["Not overcooking shrimp", "Shrimp are done when they curl into a loose C. A tight O means rubbery. Pull them a little early, since they cook more when you reheat."] },
+  { id: "sheetsalmon", kind: "fish", n: "Sheet-pan salmon & potatoes", active: 10, keeps: "3 days", ing: [["salmon", 6], ["potato", 250], ["fveg", 150], ["oil", .5]], pantry: "garlic powder, paprika, salt, pepper",
+    reheat: "Microwave 90 sec at half power so the salmon stays moist.",
+    prep: [[1, "Heat the oven to 425°F. Cube the potatoes, toss with half the oil and seasoning, spread out with space between pieces, and roast 15 min. Add the salmon and broccoli, drizzle with the rest of the oil, and roast 12–15 min more."], [3, "Cool 10 min, then portion."]],
+    tech: ["High-heat roasting", "Crowded vegetables steam instead of browning. Use two pans if needed, keep everything in one layer, and don't stir for the first 15 minutes so a crust forms."] },
+  { id: "scampi", kind: "fish", n: "Shrimp scampi pasta", active: 20, keeps: "3 days", ing: [["shrimp", 5], ["pasta", 75], ["butter", 1], ["oil", .5], ["lemon", .5], ["spinach", 75], ["cheese", .25]], pantry: "garlic, red pepper flakes",
+    reheat: "Microwave 90 sec with a splash of water.",
+    prep: [[1, "Boil the pasta in well-salted water 1 min short of the box time. Save a mug of pasta water, then drain."], [2, "Sauté garlic and pepper flakes in the oil 30 sec, cook the shrimp 1–2 min per side, and take them out. Add lemon juice and a splash of pasta water, take the pan off the heat, and swirl in the cold butter until glossy. Toss with the pasta, spinach and shrimp."], [3, "Portion and top with cheese."]],
+    tech: ["Butter pan sauce", "Take the pan off the heat before adding cold butter and keep swirling. Starchy pasta water helps it turn creamy instead of greasy. If it separates, add another splash of pasta water and stir."] },
+  { id: "friedrice", kind: "fish", n: "Shrimp & egg fried rice", active: 15, keeps: "3 days", ing: [["shrimp", 4], ["egg", 2], ["rice", 60], ["fveg", 150], ["oil", .5]], pantry: "soy sauce, garlic, green onion",
+    reheat: "Microwave 2 min with a splash of water.",
+    prep: [[2, "Do this last so the rice has cooled. Scramble the eggs and set aside. Cook the shrimp 1–2 min per side and set aside. Stir-fry the frozen vegetables in the oil over high heat 3 min, add the rice and soy sauce, press flat and leave it 1 min to crisp, then fold everything together."], [3, "Portion."]],
+    tech: ["Fried rice over high heat", "Cold, dry rice is the key. Fresh rice turns mushy. Spread it on a sheet pan to cool fast, use your hottest burner, and let it sit untouched for a minute to crisp."] },
+  { id: "tacobowl", kind: "fish", n: "Blackened tilapia taco bowls", active: 15, keeps: "3 days", ing: [["tilapia", 7], ["rice", 60], ["slaw", 100], ["yogurt", .25], ["salsa", 30], ["lime", .5], ["oil", .25]], pantry: "chili powder, cumin, garlic powder, paprika",
+    reheat: "Microwave fish and rice 90 sec. Add slaw, sauce and salsa after.",
+    prep: [[2, "Pat the tilapia very dry and coat with the spices and salt. Sear in a hot pan with the oil 3 min per side, then flake. Stir yogurt with lime juice and salt for the sauce."], [3, "Portion fish over rice. Pack the slaw, sauce and salsa on the side."]],
+    tech: ["Blackening", "Dry fish, a hot pan and a heavy spice coat make a dark, flavorful crust. Turn on the fan and don't move the fish for the first 3 minutes."] },
+  { id: "misosalmon", kind: "fish", n: "Miso-glazed salmon & rice", active: 15, keeps: "3 days", ing: [["salmon", 6], ["miso", 1], ["honey", .5], ["rice", 60], ["fveg", 150]], pantry: "soy sauce, rice vinegar, garlic, sesame seeds",
+    reheat: "Microwave 90 sec at half power.",
+    prep: [[1, "Turn on the broiler with a rack near the top. Whisk the miso, honey, a splash of soy sauce and vinegar. Brush it on the thawed salmon and broil 6–8 min until the glaze bubbles and chars at the edges. Roast or steam the frozen vegetables."], [3, "Portion salmon and vegetables over rice and sprinkle with sesame seeds."]],
+    tech: ["Broiling a glaze", "Sugar in the glaze burns fast. Keep the salmon 4–6 inches from the broiler, watch it after 5 minutes, and pull it when the edges char in spots."] },
+  { id: "searcod", kind: "fish", n: "Pan-seared cod with lemon butter", active: 20, keeps: "3 days", ing: [["cod", 7], ["potato", 200], ["fveg", 150], ["oil", .5], ["butter", 1], ["lemon", .5]], pantry: "garlic, paprika, salt, pepper",
+    reheat: "Microwave 60–90 sec at half power.",
+    prep: [[1, "Heat the oven to 425°F. Roast the cubed potatoes with half the oil and paprika 25–30 min."], [2, "Pat the cod very dry and salt it. Sear in the rest of the oil in a hot pan 3–4 min without moving it, flip, cook 2 min more and remove. Lower the heat, add garlic, lemon juice and a splash of water, then swirl in the butter. Steam the frozen vegetables."], [3, "Portion cod, potatoes and vegetables, with the sauce over the fish."]],
+    tech: ["Searing fish", "Dry the fish well, heat the pan until the oil shimmers, lay the fish down away from you, and don't touch it. It lets go on its own once the crust forms. If it sticks, give it 30 more seconds."] },
 
-  { id: "sheetsalmon", slot: "d", n: "Sheet-pan salmon & potatoes", time: "35 min", ing: [["salmon", 6], ["potato", 250], ["fveg", 150], ["oil", .5]], pantry: "garlic powder, paprika, salt, pepper",
-    steps: ["Heat the oven to 425°F. Cube the potatoes, toss with half the oil and seasoning, and roast 15 min.", "Add the thawed salmon and frozen broccoli to the pan, drizzle with the rest of the oil and season.", "Roast 12–15 min more, until the salmon flakes easily."] },
-  { id: "tacos", slot: "d", n: "Blackened tilapia tacos", time: "20 min", ing: [["tilapia", 7], ["tortilla", 2], ["slaw", 100], ["yogurt", .25], ["salsa", 30], ["lime", .5]], pantry: "chili powder, cumin, garlic powder, paprika",
-    steps: ["Pat the thawed tilapia dry and coat it with the spices and salt.", "Cook in a hot nonstick pan 3 min per side, then flake.", "Stir Greek yogurt with lime juice and a pinch of salt for the sauce.", "Fill warm tortillas with fish, slaw, salsa and sauce."] },
-  { id: "stirfry", slot: "d", n: "Tofu & veg stir-fry", time: "25 min", ing: [["tofu", 8], ["rice", 45], ["fveg", 200], ["edamame", 50], ["oil", .5]], pantry: "soy sauce, garlic, ginger, sriracha, cornstarch",
-    steps: ["Press the tofu in a towel for 10 min, cube it and toss with 1 tsp cornstarch.", "Fry the tofu in the oil until golden, about 8 min. Set aside.", "Stir-fry the frozen vegetables and edamame 5 min, then add the tofu back with 2 tbsp soy sauce, garlic, ginger and sriracha.", "Serve over rice."] },
-  { id: "shrimppasta", slot: "d", n: "Shrimp marinara pasta", time: "20 min", ing: [["shrimp", 5], ["pasta", 75], ["marinara", 150], ["spinach", 100], ["oil", .5], ["cheese", .5]], pantry: "garlic, red pepper flakes",
-    steps: ["Boil the pasta as the box says.", "Sauté garlic in the oil for 30 seconds, add the shrimp and cook 2 min per side.", "Add the marinara and spinach and simmer until the spinach wilts.", "Toss with the pasta and top with cheese."] },
-  { id: "cod", slot: "d", n: "Garlic-lime cod & rice", time: "25 min", ing: [["cod", 7], ["rice", 60], ["fveg", 150], ["oil", .5], ["yogurt", .25], ["lime", .5]], pantry: "garlic, dill, salt, pepper",
-    steps: ["Cook the rice and heat the oven to 400°F.", "Put the cod on a sheet pan, brush with oil, garlic, salt, pepper and lime juice. Bake 12–15 min.", "Steam frozen green beans or broccoli.", "Stir Greek yogurt with dill and lime for a sauce."] },
-  { id: "curry", slot: "d", n: "Lentil & sweet potato curry", time: "35 min", ing: [["lentils", 60], ["sweetpot", 200], ["coconut", .25], ["tomatoes", .25], ["spinach", 100], ["yogurt", .5], ["rice", 40]], pantry: "curry powder, garlic, ginger, salt",
-    steps: ["Sauté garlic, ginger and 2 tbsp curry powder for 1 min.", "Add the diced sweet potato, rinsed lentils, tomatoes, coconut milk and 3 cups of water. Simmer 25 min.", "Stir in the spinach until it wilts. Season with salt.", "Serve over rice with Greek yogurt on top."] },
-  { id: "friedrice", slot: "d", n: "Shrimp & egg fried rice", time: "20 min", ing: [["shrimp", 4], ["egg", 2], ["rice", 60], ["fveg", 150], ["oil", .5]], pantry: "soy sauce, garlic, green onion",
-    steps: ["Best with rice cooked a day ahead and chilled.", "Scramble the eggs in a hot pan and set aside.", "Cook the shrimp 2 min per side and set aside.", "Stir-fry the frozen peas and carrots in the oil for 3 min, add the rice and soy sauce, then fold the eggs and shrimp back in."] },
+  { id: "lentilsoup", kind: "veg", n: "Lentil vegetable soup", active: 15, keeps: "5 days", ing: [["lentils", 62.5], ["tomatoes", .25], ["onion", .25], ["fveg", 75], ["oil", .25], ["bread", 2], ["yogurt", .5]], pantry: "garlic, cumin, smoked paprika, bouillon cube, vinegar",
+    reheat: "Microwave 3 min, stirring halfway. Add yogurt after.",
+    prep: [[1, "Dice the onion and sauté in the oil 4 min. Add garlic and spices 1 min, then the lentils, tomatoes, 6 cups water and bouillon. Simmer 25 min."], [2, "Add the frozen vegetables for the last 5 min. Season with salt and a splash of vinegar."], [3, "Cool 20 min, then portion. Pack the bread and yogurt separately."]],
+    tech: ["Finishing with acid", "A splash of vinegar or lemon at the end makes a soup taste brighter and better seasoned. Taste it before and after."] },
+  { id: "curry", kind: "veg", n: "Lentil & sweet potato curry", active: 15, keeps: "5 days", ing: [["lentils", 60], ["sweetpot", 200], ["coconut", .25], ["tomatoes", .25], ["spinach", 100], ["yogurt", .5], ["rice", 40], ["oil", .25]], pantry: "curry powder, garlic, ginger, salt",
+    reheat: "Microwave 3 min, stirring halfway. Add yogurt after.",
+    prep: [[1, "Cook garlic, ginger and curry powder in the oil 1 min until fragrant. Add the diced sweet potato, lentils, tomatoes, coconut milk and 3 cups water and simmer 25 min."], [2, "Stir in the spinach until it wilts and season with salt."], [3, "Cool, then portion over rice."]],
+    tech: ["Blooming spices", "Cooking ground spices in hot oil for about a minute, until they smell toasty, gets far more flavor out of them than adding them to liquid. Stop before they darken or they turn bitter."] },
+  { id: "stirfry", kind: "veg", n: "Tofu & vegetable stir-fry", active: 20, keeps: "5 days", ing: [["tofu", 8], ["rice", 45], ["fveg", 200], ["edamame", 50], ["oil", .5]], pantry: "soy sauce, garlic, ginger, sriracha, cornstarch",
+    reheat: "Microwave 2 min, stirring halfway.",
+    prep: [[1, "Press the tofu in a towel under something heavy for 15 min."], [2, "Cube the tofu, toss with 1 tsp cornstarch and fry in the oil until golden on several sides, about 8 min. Stir-fry the frozen vegetables and edamame over high heat 5 min, then add the tofu back with soy sauce, garlic, ginger and sriracha."], [3, "Portion over rice."]],
+    tech: ["Stir-frying", "Get the pan very hot, cook in batches so it isn't crowded, and keep things moving. A crowded pan cools down and the vegetables stew instead of sear."] },
+  { id: "chana", kind: "veg", n: "Chickpea & spinach curry with eggs", active: 20, keeps: "5 days", ing: [["chickpeas", .5], ["tomatoes", .33], ["onion", .25], ["spinach", 75], ["oil", .5], ["rice", 50], ["egg", 2], ["yogurt", .25]], pantry: "garlic, ginger, garam masala or curry powder, cumin",
+    reheat: "Microwave 2–3 min. Add the eggs for the last 30 sec.",
+    prep: [[1, "Lower the eggs into boiling water, cook 7 min, then move them to ice water."], [2, "Cook the diced onion in the oil until golden, about 8 min. Add garlic, ginger and spices 1 min, then the tomatoes and chickpeas. Simmer 10 min, mashing a few chickpeas to thicken, then stir in the spinach."], [3, "Portion over rice. Peel the eggs and pack them on top."]],
+    tech: ["Jammy boiled eggs", "Put eggs straight from the fridge into water that's already boiling: 6½ min for jammy yolks, 9 for firm. Move them to ice water right away and they peel easily."] },
+  { id: "chili", kind: "veg", n: "Black bean & sweet potato chili", active: 20, keeps: "5 days", ing: [["beans", .5], ["sweetpot", 150], ["tomatoes", .33], ["onion", .25], ["pepper", .25], ["lentils", 30], ["oil", .25], ["cheese", .5], ["yogurt", .5]], pantry: "garlic, chili powder, cumin, smoked paprika, oregano, vinegar",
+    reheat: "Microwave 3 min. Add cheese and yogurt after.",
+    prep: [[1, "Cook the diced onion and pepper in the oil over medium heat 6 min until soft. Add garlic and spices 1 min, then the sweet potato, beans, lentils, tomatoes and 3 cups water. Simmer 30 min."], [2, "Season with salt and a splash of vinegar."], [3, "Cool and portion. Pack the cheese and yogurt separately."]],
+    tech: ["Building a flavor base", "Cooking the onion and pepper slowly until soft and sweet before anything else goes in is what makes chili taste like it simmered all day. Don't rush this step with high heat."] },
+  { id: "peanutnoodles", kind: "veg", n: "Crispy tofu peanut noodles", active: 25, keeps: "5 days", ing: [["tofu", 7], ["pasta", 70], ["fveg", 150], ["pb", 1], ["oil", .5], ["lime", .25]], pantry: "soy sauce, garlic, ginger, sriracha, cornstarch",
+    reheat: "Microwave 2 min, or eat cold.",
+    prep: [[1, "Press the tofu 15 min. Boil the pasta and drain."], [2, "Cube the tofu, toss in cornstarch and pan-fry in the oil until crisp, 8–10 min. Whisk peanut butter, soy sauce, lime juice, garlic, ginger, sriracha and hot water into a sauce. Cook the frozen vegetables 4 min and toss with the noodles and sauce."], [3, "Portion the noodles and keep the tofu on top so it stays crisper."]],
+    tech: ["Crispy tofu", "Press out the water, coat in a thin layer of cornstarch, and fry in a single layer without moving the pieces for 2–3 minutes per side. Wet tofu or a crowded pan won't crisp."] },
 ];
 const RBY = Object.fromEntries(RECIPES.map(r => [r.id, r]));
-const SLOTS = {
-  b: { name: "Breakfast", serv: [4, 3], when: ["Sun–Wed", "Thu–Sat"] },
-  l: { name: "Lunch", serv: [4, 3], when: ["Sun–Wed · prep Sunday", "Thu–Sat · prep Wednesday night"] },
-  d: { name: "Dinner", serv: [2, 2, 2], when: ["Sun + Mon", "Tue + Wed", "Thu + Fri"] },
+const POOL = { b: RECIPES.filter(r => r.kind === "b").map(r => r.id), fish: RECIPES.filter(r => r.kind === "fish").map(r => r.id), veg: RECIPES.filter(r => r.kind === "veg").map(r => r.id) };
+// each week: Tuesday cook = breakfast (bt) + fish main (t1) + 5-day main (t2); Friday cook = breakfast (bf) + fish main (f1) + 5-day main (f2)
+const SLOT = {
+  bt: { pool: "b", serv: 4, cook: "tue" }, t1: { pool: "fish", serv: 3, cook: "tue" }, t2: { pool: "veg", serv: 3, cook: "tue" },
+  bf: { pool: "b", serv: 3, cook: "fri" }, f1: { pool: "fish", serv: 3, cook: "fri" }, f2: { pool: "veg", serv: 4, cook: "fri" },
 };
-// every-week extras: post-workout yogurt + whey daily, pre-workout snack on 4 lifting days, 3 apples
-const FIXED = [["yogurt", 7], ["whey", 7], ["banana", 4], ["bread", 4], ["pb", 4], ["apple", 3]];
+// what you eat each day, by weekday (0 = Sun). "prev" = last week's Friday cook.
+const EAT = {
+  2: { b: ["prev", "bf"], l: ["prev", "f2"], d: ["cur", "t1", "fresh"] },
+  3: { b: ["cur", "bt"], l: ["cur", "t2"], d: ["cur", "t1"] },
+  4: { b: ["cur", "bt"], l: ["cur", "t2"], d: ["cur", "t1"] },
+  5: { b: ["cur", "bt"], l: ["cur", "t2"], d: ["cur", "f1", "fresh"] },
+  6: { b: ["cur", "bt"], l: ["cur", "f2"], d: ["cur", "f1"] },
+  0: { b: ["cur", "bf"], l: ["cur", "f1"], d: ["cur", "f2"] },
+  1: { b: ["cur", "bf"], l: ["cur", "f2"], d: null },
+};
+// every-week extras: post-workout yogurt + whey daily, pre-workout snack on 4 lifting days, apples, 2 backup cans of tuna
+const FIXED = [["yogurt", 7], ["whey", 7], ["banana", 4], ["bread", 4], ["pb", 4], ["apple", 3], ["tuna", 2]];
 
 function macros(r) {
   return r.ing.reduce((m, [k, q]) => { const i = ING[k]; m.cost += i[2] * q; m.kcal += i[3] * q; m.p += i[4] * q; return m; }, { cost: 0, kcal: 0, p: 0 });
 }
-function weekStart(d = new Date()) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - x.getDay()); return x; }
-const weekIdx = ws => Math.round((ws - new Date(2026, 0, 4)) / 6048e5); // Sunday Jan 4, 2026 = week 0
+// plan weeks start on Tuesday (the first cook night)
+function weekStart(d = new Date()) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 5) % 7)); return x; }
+const weekIdx = ws => Math.round((ws - new Date(2026, 0, 6)) / 6048e5); // Tuesday Jan 6, 2026 = week 0
 function defaultMenu(wi) {
-  const pick = (slot, k) => { const ids = RECIPES.filter(r => r.slot === slot).map(r => r.id), n = ids.length; return Array.from({ length: k }, (_, j) => ids[(((wi * k + j) % n) + n) % n]); };
-  return { b: pick("b", 2), l: pick("l", 2), d: pick("d", 3) };
+  const at = (pool, i) => { const ids = POOL[pool]; return ids[((i % ids.length) + ids.length) % ids.length]; };
+  return { bt: at("b", 2 * wi), bf: at("b", 2 * wi + 1), t1: at("fish", 2 * wi), f1: at("fish", 2 * wi + 1), t2: at("veg", 2 * wi), f2: at("veg", 2 * wi + 1) };
 }
-function currentMenu() { const ws = weekStart(); return { ...defaultMenu(weekIdx(ws)), ...(cache.menus[iso(ws)] || {}) }; }
+function menuFor(ws) { const saved = cache.menus[iso(ws)]; return { ...defaultMenu(weekIdx(ws)), ...(saved && saved.t1 ? saved : {}) }; }
 function fmtQty(q, unit) {
   if (unit === "g") return `${Math.round(q / 5) * 5} g`;
   const r = Math.round(q * 4) / 4, w = Math.floor(r), f = { 0: "", .25: "¼", .5: "½", .75: "¾" }[r - w];
@@ -584,56 +651,84 @@ function fmtQty(q, unit) {
 function groceryList(m) {
   const need = {};
   const addQ = (k, q) => need[k] = (need[k] || 0) + q;
-  for (const s of ["b", "l", "d"]) m[s].forEach((id, i) => RBY[id].ing.forEach(([k, q]) => addQ(k, q * SLOTS[s].serv[i])));
+  for (const [slot, s] of Object.entries(SLOT)) RBY[m[slot]].ing.forEach(([k, q]) => addQ(k, q * s.serv));
   FIXED.forEach(([k, q]) => addQ(k, q));
   const rows = Object.entries(need).map(([k, q]) => { const i = ING[k]; return { k, name: i[0], unit: i[1], q, cost: i[2] * q, buy: i[7] ? 0 : Math.max(1, Math.ceil(q / i[5] - .1)), pkg: i[6], staple: i[7], aisle: i[8] }; });
   const total = rows.reduce((t, r) => t + r.cost, 0) + SPICE_ALLOWANCE;
   return { rows, total };
 }
-function todaysMeals(m) {
-  const dow = new Date().getDay();
-  return { b: m.b[dow <= 3 ? 0 : 1], l: m.l[dow <= 3 ? 0 : 1], d: dow === 6 ? null : m.d[Math.floor(dow / 2)] };
+function mealsOn(date) {
+  const ws = weekStart(date), cur = menuFor(ws), prev = menuFor(new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() - 7));
+  const e = EAT[date.getDay()], pick = x => x ? { id: (x[0] === "prev" ? prev : cur)[x[1]], fresh: x[2] === "fresh" } : null;
+  return { b: pick(e.b), l: pick(e.l), d: pick(e.d) };
 }
-function swapRecipe(slot, i) {
-  const m = currentMenu(), ids = RECIPES.filter(r => r.slot === slot).map(r => r.id);
-  let j = ids.indexOf(m[slot][i]);
-  do { j = (j + 1) % ids.length; } while (m[slot].includes(ids[j]));
-  const next = { b: [...m.b], l: [...m.l], d: [...m.d] }; next[slot][i] = ids[j];
-  store.set("menus", iso(weekStart()), next);
+function swapRecipe(slot) {
+  const ws = weekStart(), m = menuFor(ws), ids = POOL[SLOT[slot].pool];
+  const taken = Object.entries(m).filter(([k]) => k !== slot && SLOT[k].pool === SLOT[slot].pool).map(([, v]) => v);
+  let j = ids.indexOf(m[slot]);
+  do { j = (j + 1) % ids.length; } while (taken.includes(ids[j]) && ids.length > taken.length + 1);
+  store.set("menus", iso(ws), { ...m, [slot]: ids[j] });
 }
-function recipeCard(r, slot, i) {
-  const mc = macros(r), serv = SLOTS[slot].serv[i];
+const SLOT_WHEN = { bt: "Breakfast · Wed–Sat", t1: "Dinner · Tue (fresh), Wed, Thu", t2: "Lunch · Wed, Thu, Fri", bf: "Breakfast · Sun, Mon, Tue", f1: "Dinner Fri (fresh), Sat · lunch Sun", f2: "Sat lunch · Sun dinner · Mon & Tue lunch" };
+function recipeCard(slot, m) {
+  const r = RBY[m[slot]], mc = macros(r), serv = SLOT[slot].serv;
   return `<article class="recipe">
-    <div class="ex-head"><div><span class="label">${SLOTS[slot].when[i]}</span><h3>${esc(r.n)}</h3>
-      <div class="chips num"><span>${Math.round(mc.kcal)} kcal</span><span>${Math.round(mc.p)} g protein</span><span>${money(mc.cost)}/serving</span></div></div>
-      <button class="secondary swap" data-swap="${slot}" data-i="${i}" aria-label="Swap ${esc(r.n)} for another recipe">Swap</button></div>
-    <details><summary>Ingredients &amp; steps · ${esc(r.time)} · makes ${serv}</summary>
+    <div class="ex-head"><div><span class="label">${SLOT_WHEN[slot]}</span><h3>${esc(r.n)}</h3>
+      <div class="chips num"><span>${Math.round(mc.kcal)} kcal</span><span>${Math.round(mc.p)} g protein</span><span>${money(mc.cost)}/serving</span><span>makes ${serv}</span></div></div>
+      <button class="secondary swap" data-swap="${slot}" aria-label="Swap ${esc(r.n)} for another recipe">Swap</button></div>
+    <details><summary>Ingredients, reheating &amp; technique</summary>
       <ul class="ing">${r.ing.map(([k, q]) => `<li><span>${esc(ING[k][0])}</span><span class="num muted">${fmtQty(q * serv, ING[k][1])}</span></li>`).join("")}<li><span class="muted">From the pantry: ${esc(r.pantry)}</span><span></span></li></ul>
-      <ol class="steps">${r.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>
-      <p class="small muted" style="margin:0">Amounts are for all ${serv} servings this week.</p></details>
+      <p class="small" style="margin:0 0 6px"><b>Keeps:</b> ${esc(r.keeps)}. <b>Reheat:</b> ${esc(r.reheat)}</p>
+      <p class="small" style="margin:0"><b>Technique: ${esc(r.tech[0])}.</b> ${esc(r.tech[1])}</p></details>
   </article>`;
 }
+function cookPlan(day, m) {
+  const slots = Object.keys(SLOT).filter(s => SLOT[s].cook === day), rs = slots.map(s => [s, RBY[m[s]]]);
+  const riceG = rs.reduce((t, [s, r]) => t + r.ing.filter(([k]) => k === "rice").reduce((a, [, q]) => a + q * SLOT[s].serv, 0), 0);
+  const steps = { 1: [], 2: [], 3: [] };
+  if (riceG) steps[1].push(["Rice", `Rinse and cook ${Math.round(riceG / 5) * 5} g dry rice (about ${(riceG / 185).toFixed(1)} cups) with twice as much water, covered, 18 min. Rest 10 min, then spread on a sheet pan to cool.`]);
+  rs.forEach(([, r]) => r.prep.forEach(([p, t]) => steps[p].push([r.n, t])));
+  const mins = Math.round((rs.reduce((t, [, r]) => t + r.active, 0) * .8 + 20) / 5) * 5;
+  const names = ["", "Start first", "While that cooks", "Portion and pack"];
+  return { mins, html: [1, 2, 3].filter(p => steps[p].length).map(p => `<h3 style="margin-top:10px">${names[p]}</h3><ol class="steps">${steps[p].map(([n, t]) => `<li><b>${esc(n)}:</b> ${esc(t)}</li>`).join("")}</ol>`).join("") };
+}
 function renderMeals() {
-  const s = settings(), m = currentMenu(), t = todaysMeals(m), ws = weekStart();
+  const s = settings(), now = new Date(), ws = weekStart(), m = menuFor(ws), t = mealsOn(now), dow = now.getDay();
   const weekly = s.groceryBudget * 12 / 52, g = groceryList(m);
   const checked = lsGet("pp:shop:" + iso(ws), {});
-  const dayTotals = [t.b, t.l, t.d].filter(Boolean).map(id => macros(RBY[id])).reduce((a, x) => ({ kcal: a.kcal + x.kcal, p: a.p + x.p }), W[scheduled()] ? { kcal: 530, p: 56 } : { kcal: 250, p: 47 }); // snack, plus pre-workout on lifting days
+  const lift = W[scheduled()];
+  const tot = [t.b, t.l, t.d].filter(Boolean).map(x => macros(RBY[x.id])).reduce((a, x) => ({ kcal: a.kcal + x.kcal, p: a.p + x.p }), lift ? { kcal: 530, p: 56 } : { kcal: 250, p: 47 });
+  const meal = (label, x, fallback) => `<li><span><span class="label">${label}</span><br>${x ? `${esc(RBY[x.id].n)}${x.fresh ? ` <span class="status good">Cook tonight</span>` : `<br><span class="small muted">${esc(RBY[x.id].reheat)}</span>`}` : fallback}</span></li>`;
+  const tue = cookPlan("tue", m), fri = cookPlan("fri", m);
+  const cookToday = dow === 2 ? ["Tuesday", tue] : dow === 5 ? ["Friday", fri] : null;
   const st = g.total <= weekly ? ["good", "Within budget"] : ["bad", "Over budget"];
-  let h = `<section class="card"><div class="row"><h2>Today</h2><span class="small muted">Week of ${fmtDay(iso(ws))}</span></div>
+  const ft = RBY[m.f1].tech, tt = RBY[m.t1].tech;
+  let h = `<section class="card"><div class="row"><h2>Today</h2><span class="small muted">${now.toLocaleDateString(undefined, { weekday: "long" })}</span></div>
+    ${cookToday ? `<p class="banner" style="margin:8px 0 0">Cook night: about ${cookToday[1].mins} min. The plan is in ${cookToday[0]}'s cook below.</p>` : ""}
     <ul class="log" style="margin-top:6px">
-      <li><span><span class="label">Breakfast</span><br>${esc(RBY[t.b].n)}</span></li>
-      <li><span><span class="label">Lunch</span><br>${esc(RBY[t.l].n)}</span></li>
-      <li><span><span class="label">Snack</span><br>1 cup Greek yogurt + 1 scoop whey${W[scheduled()] ? "; banana + toast with peanut butter before lifting" : ""}</span></li>
-      <li><span><span class="label">Dinner</span><br>${t.d ? esc(RBY[t.d].n) : "Meal out (from the dining budget) or leftovers"}</span></li></ul>
-    <p class="small muted num" style="margin:6px 0 0">About ${Math.round(dayTotals.kcal / 10) * 10} kcal and ${Math.round(dayTotals.p)} g protein from home food. Target: ${s.calTarget.toLocaleString()} kcal, ${s.protein} g.</p></section>`;
-  for (const slot of ["b", "l", "d"]) {
-    h += `<section class="card stack"><h2>${SLOTS[slot].name}</h2>${m[slot].map((id, i) => recipeCard(RBY[id], slot, i)).join("")}
-      ${slot === "d" ? `<p class="small muted" style="margin:0">Saturday is your meal out, from the dining budget.</p>` : ""}</section>`;
+      ${meal("Breakfast", t.b)}${meal("Lunch", t.l)}
+      <li><span><span class="label">Snack</span><br>1 cup Greek yogurt + 1 scoop whey${lift ? "; banana + toast with peanut butter before lifting" : ""}</span></li>
+      ${meal("Dinner", t.d, "Your meal out for the week, from the dining budget")}</ul>
+    <p class="small muted num" style="margin:6px 0 0">About ${Math.round(tot.kcal / 10) * 10} kcal and ${Math.round(tot.p)} g protein from home food. Target: ${s.calTarget.toLocaleString()} kcal, ${s.protein} g.</p></section>
+  <section class="card"><span class="label">Technique of the week</span><h2 style="margin-top:2px">${esc(ft[0])}</h2>
+    <p class="small" style="margin:6px 0 0">Practice it Friday on the <b>${esc(RBY[m.f1].n.toLowerCase())}</b>, while you eat it fresh. ${esc(ft[1])}</p>
+    <p class="small muted" style="margin:8px 0 0">Tuesday's skill: ${esc(tt[0].toLowerCase())}, in the ${esc(RBY[m.t1].n.toLowerCase())}. Tips for every recipe are in its details.</p></section>`;
+  for (const [day, label, plan, slots, note] of [["tue", "Tuesday cook", tue, ["t1", "t2", "bt"], "After Upper A. Covers dinner tonight through Friday lunch, plus breakfasts Wednesday–Saturday."],
+                                                ["fri", "Friday cook", fri, ["f1", "f2", "bf"], "After Upper B. Covers dinner tonight through next Tuesday's lunch. Eat the fish first; the second main keeps 5 days."]]) {
+    h += `<section class="card stack" id="cook-${day}"><div class="row"><h2>${label}</h2><span class="small muted num">~${plan.mins} min</span></div>
+      <p class="small muted" style="margin:0">${note}</p>
+      ${slots.map(sl => recipeCard(sl, m)).join("")}
+      <details${(day === "tue" && dow === 2) || (day === "fri" && dow === 5) ? " open" : ""}><summary>Step-by-step cook plan</summary>${plan.html}</details></section>`;
   }
+  const order = [2, 3, 4, 5, 6, 0, 1], dn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  h += `<section class="card"><h2>The week at a glance</h2><div style="overflow-x:auto"><table class="plan grid" style="margin-top:6px"><thead><tr><th></th><th>Breakfast</th><th>Lunch</th><th>Dinner</th></tr></thead><tbody>${order.map(d => {
+      const day = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + ((d + 5) % 7)), x = mealsOn(day), nm = y => y ? esc(RBY[y.id].n) + (y.fresh ? " ★" : "") : "Meal out";
+      return `<tr${d === dow ? ' class="now"' : ""}><td>${dn[d]}</td><td>${nm(x.b)}</td><td>${nm(x.l)}</td><td>${nm(x.d)}</td></tr>`; }).join("")}</tbody></table></div>
+    <p class="small muted" style="margin:6px 0 0">★ eaten fresh on a cook night. Label containers with the day so the fish gets eaten first.</p></section>`;
   h += `<section class="card"><div class="row"><h2>Grocery list</h2><span class="status ${st[0]}">${st[1]}</span></div>
     <div class="row small num" style="margin-top:4px"><span>Food for the week: <b>${money(g.total)}</b></span><span class="muted">budget ${money(weekly)}/wk</span></div>
     <div class="meter" aria-hidden="true"><i class="${g.total > weekly ? "over" : ""}" style="width:${Math.min(100, g.total / weekly * 100)}%"></i></div>
-    <p class="small muted" style="margin:8px 0 4px">Tap an item to check it off. The cost counts only what you'll eat this week. Leftover packages carry into next week.</p>`;
+    <p class="small muted" style="margin:8px 0 4px">One trip covers both cooks. A Kroger pickup on Tuesday on the way home works well, and the frozen fish keeps until Friday. The cost counts only what you'll eat this week.</p>`;
   for (const a of AISLES) {
     const rows = g.rows.filter(r => r.aisle === a).sort((x, y) => x.name.localeCompare(y.name));
     if (!rows.length) continue;
@@ -641,7 +736,12 @@ function renderMeals() {
       <span><b>${esc(r.name)}</b><br><span class="small muted num">${r.staple ? `Check the pantry · uses ${fmtQty(r.q, r.unit)}` : `Buy ${r.buy} × ${esc(r.pkg)} · uses ${fmtQty(r.q, r.unit)}`}</span></span>
       <span class="num muted small">${money(r.cost)}</span></label></li>`).join("")}</ul>`;
   }
-  h += `<p class="small muted" style="margin:10px 0 0">Includes ${money(SPICE_ALLOWANCE)} for spices and sauces. Prices are Aldi/Kroger estimates.</p></section>`;
+  h += `<p class="small muted" style="margin:10px 0 0">Includes ${money(SPICE_ALLOWANCE)} for spices and sauces. Prices are Aldi/Kroger estimates.</p></section>
+  <section class="card"><h2>If a cook night falls through</h2><ul class="log" style="margin-top:6px">
+    <li><span><b>Tuna wrap</b> · 5 min<br><span class="small muted">A backup can of tuna mashed with Greek yogurt and mustard, in two tortillas or on toast.</span></span></li>
+    <li><span><b>Eggs on toast</b> · 8 min<br><span class="small muted">3 eggs, 2 slices of toast, frozen vegetables microwaved on the side.</span></span></li>
+    <li><span><b>Protein yogurt bowl</b> · 2 min<br><span class="small muted">1 cup Greek yogurt, 1 scoop whey, a banana and oats.</span></span></li></ul>
+    <p class="small muted" style="margin:6px 0 0">If you miss Tuesday, cook Wednesday after your day job and before the night shift, or move everything to Thursday.</p></section>`;
   return h;
 }
 
@@ -694,7 +794,7 @@ main.addEventListener("click", e => {
   if (t.id === "finish") { finishWorkout(); return; }
   if (t.id === "backup") { saveBackup(); return; }
   if (t.id === "apply") { const s = settings(); store.set("settings", "main", { ...s, calTarget: s.calTarget + Number(t.dataset.d), changedAt: iso() }); toast("Calorie target updated."); return; }
-  if (t.dataset.swap) { swapRecipe(t.dataset.swap, Number(t.dataset.i)); return; }
+  if (t.dataset.swap) { swapRecipe(t.dataset.swap); return; }
   if (t.dataset.kind) { state.spendKind = t.dataset.kind; render(); return; }
   if (t.dataset.askw) { state.confirmDel = "w:" + t.dataset.askw; render(); return; }
   if (t.dataset.delw) { state.confirmDel = null; store.del("weighins", t.dataset.delw); return; }
