@@ -131,6 +131,7 @@ table.plan td:first-child { width: 56px; font-weight: 700 }
 .chips span { font-size: 13px; padding: 2px 8px; border-radius: 6px; background: var(--soft); color: var(--muted); font-weight: 600 }
 .swap { flex: none }
 details + details { margin-top: -4px }
+details.combined { border-top: 1px solid var(--line); padding-top: 12px }
 details summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--blue); padding-block: 4px }
 ul.ing { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 4px; font-size: 15px }
 ul.ing li { display: flex; justify-content: space-between; gap: 10px }
@@ -205,7 +206,7 @@ const W = {
     { id: "lateral", n: "Lateral raises", unit: "lb per hand", sets: 3, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 },
     { id: "facepull", n: "Face pulls", sets: 2, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 } ] },
 };
-const APP_VERSION = "2026.10.11-2212";
+const APP_VERSION = "2026.10.11-2214";
 const ORDER = ["LA", "UA", "LB", "UB"];
 const DEFAULTS = { calTarget: 2200, protein: 160, fat: 65, groceryBudget: 350, diningBudget: 400 };
 
@@ -726,7 +727,7 @@ function renderMeals() {
     h += `<section class="card stack" id="cook-${day}"><div class="row"><h2>${label}</h2><span class="small muted num">~${plan.mins} min</span></div>
       <p class="small muted" style="margin:0">${note}</p>
       ${slots.map(sl => recipeCard(sl, m)).join("")}
-      <details${(day === "tue" && dow === 2) || (day === "fri" && dow === 5) ? " open" : ""}><summary>Combined plan for the night (all 3 recipes in cooking order)</summary>${plan.html}</details></section>`;
+      <details class="combined"${(day === "tue" && dow === 2) || (day === "fri" && dow === 5) ? " open" : ""}><summary>Combined plan for the night (all 3 recipes in cooking order)</summary>${plan.html}</details></section>`;
   }
   const order = [2, 3, 4, 5, 6, 0, 1], dn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   h += `<section class="card"><h2>The week at a glance</h2><div style="overflow-x:auto"><table class="plan grid" style="margin-top:6px"><thead><tr><th></th><th>Breakfast</th><th>Lunch</th><th>Dinner</th></tr></thead><tbody>${order.map(d => {
