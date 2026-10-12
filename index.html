@@ -43,7 +43,9 @@
 * { box-sizing: border-box }
 [hidden] { display: none !important }
 /* app shell: the tab bar is part of the layout and only the content area scrolls, so nothing moves on short pages */
-html, body { height: 100%; overscroll-behavior: none }
+/* iOS home-screen apps with a see-through status bar report the screen short by the status bar height, so add it back */
+html { height: calc(100% + env(safe-area-inset-top, 0px)); overscroll-behavior: none }
+body { height: 100%; overscroll-behavior: none }
 body { background: var(--bg); color: var(--ink); font: 16px/1.45 var(--body); margin: 0; padding: 0; display: flex; flex-direction: column; overflow: hidden }
 #scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; padding: 0 16px; padding-block: 0 24px }
 .wrap { max-width: 560px; margin: 0 auto }
@@ -226,7 +228,7 @@ function conditioning(d = new Date()) {
     ? "Repeated sprints: 8 × 30 m at 90–95% with 30 seconds' rest, then 4 × 5-10-5 shuttles (sprint 5 m, turn, 10 m, turn, 5 m)." + where
     : "Small-field intervals: 4 rounds of 4 minutes alternating 15 seconds hard and 15 seconds easy, with 2 minutes between rounds. That's what a 7v7 shift feels like." + where;
 }
-const APP_VERSION = "2026.10.11-2226";
+const APP_VERSION = "2026.10.11-2232";
 const ORDER = ["LA", "UA", "UB", "LB"];
 const DEFAULTS = { calTarget: 2200, protein: 160, fat: 65, groceryBudget: 350, diningBudget: 400 };
 
