@@ -1,6 +1,6 @@
 // Offline support. The app page is fetched fresh whenever there's a connection,
 // so updates arrive on the next open; the cached copy is used only offline.
-const CACHE = "plates-v2026.10.11-2203";
+const CACHE = "plates-v2026.10.11-2207";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

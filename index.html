@@ -204,7 +204,7 @@ const W = {
     { id: "lateral", n: "Lateral raises", unit: "lb per hand", sets: 3, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 },
     { id: "facepull", n: "Face pulls", sets: 2, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 } ] },
 };
-const APP_VERSION = "2026.10.11-2203";
+const APP_VERSION = "2026.10.11-2207";
 const ORDER = ["LA", "UA", "LB", "UB"];
 const DEFAULTS = { calTarget: 2200, protein: 160, fat: 65, groceryBudget: 350, diningBudget: 400 };
 
@@ -466,8 +466,8 @@ function renderFood() {
 // ---------- plan tab ----------
 function renderPlan() {
   const s = settings();
-  const rows = [["Mon", "LA", "Day job 8–3"], ["Tue", "UA", "Day job 8–3 · cook night"], ["Wed", null, "Rest. Day job 8–3, night job until 1. Pack lunch and dinner."], ["Thu", "LB", "Day job 8–3"], ["Fri", "UB", "Day job 8–3 · cook night"], ["Sat", null, "Rest. Day job 10–1, night job until 1. Pack lunch and dinner."], ["Sun", null, "Rest. Work until about 8. Pack lunch and dinner."]];
-  return `<section class="card"><h2>The week</h2><table class="plan" style="margin-top:6px"><tbody>${rows.map(([d, k, t]) => `<tr><td>${d}</td><td>${k ? `<span class="dot" style="--c:${W[k].c}"></span><b>${W[k].name}</b> <span class="small muted">· ${t}</span><br><span class="small muted">${esc(W[k].cardio)}</span>` : `<span class="muted">${t}</span>`}</td></tr>`).join("")}</tbody></table>
+  const rows = [["Mon", "LA", ""], ["Tue", "UA", "Cook night"], ["Wed", null, "Rest or a 30–45 min walk"], ["Thu", "LB", ""], ["Fri", "UB", "Cook night"], ["Sat", null, "Rest, or 30–45 min of easy cardio"], ["Sun", null, "Rest"]];
+  return `<section class="card"><h2>The week</h2><table class="plan" style="margin-top:6px"><tbody>${rows.map(([d, k, t]) => `<tr><td>${d}</td><td>${k ? `<span class="dot" style="--c:${W[k].c}"></span><b>${W[k].name}</b>${t ? ` <span class="small muted">· ${t}</span>` : ""}<br><span class="small muted">${esc(W[k].cardio)}</span>` : `<span class="muted">${t}</span>`}</td></tr>`).join("")}</tbody></table>
     <p class="small muted" style="margin:8px 0 0">Plus 8–10k steps a day. Add cardio time slowly, about 10% a week.</p></section>
   <section class="card"><h2>Eating</h2><p class="small" style="margin:6px 0 0">Targets: ${s.calTarget.toLocaleString()} kcal average and ${s.protein} g protein a day. You cook Tuesday and Friday after lifting. The Meals tab has both cook plans, a technique of the week, and one grocery list. The menu rotates every week, and you can swap any recipe.</p></section>
   <section class="card"><h2>Your data</h2>
@@ -741,7 +741,7 @@ function renderMeals() {
     <li><span><b>Tuna wrap</b> · 5 min<br><span class="small muted">A backup can of tuna mashed with Greek yogurt and mustard, in two tortillas or on toast.</span></span></li>
     <li><span><b>Eggs on toast</b> · 8 min<br><span class="small muted">3 eggs, 2 slices of toast, frozen vegetables microwaved on the side.</span></span></li>
     <li><span><b>Protein yogurt bowl</b> · 2 min<br><span class="small muted">1 cup Greek yogurt, 1 scoop whey, a banana and oats.</span></span></li></ul>
-    <p class="small muted" style="margin:6px 0 0">If you miss Tuesday, cook Wednesday after your day job and before the night shift, or move everything to Thursday.</p></section>`;
+    <p class="small muted" style="margin:6px 0 0">If you miss a cook night, move it to the next free evening. Everything shifts by a day, and the fish still gets eaten first.</p></section>`;
   return h;
 }
 
