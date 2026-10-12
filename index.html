@@ -42,7 +42,10 @@
 
 * { box-sizing: border-box }
 [hidden] { display: none !important }
-body { background: var(--bg); color: var(--ink); font: 16px/1.45 var(--body); padding: 0 16px; padding-block: 0 calc(84px + env(safe-area-inset-bottom, 0px)) }
+/* app shell: the tab bar is part of the layout and only the content area scrolls, so nothing moves on short pages */
+html, body { height: 100%; overscroll-behavior: none }
+body { background: var(--bg); color: var(--ink); font: 16px/1.45 var(--body); margin: 0; padding: 0; display: flex; flex-direction: column; overflow: hidden }
+#scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; padding: 0 16px; padding-block: 0 24px }
 .wrap { max-width: 560px; margin: 0 auto }
 header.top { padding-top: calc(18px + env(safe-area-inset-top, 0px)) !important; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-block: 18px 6px }
 h1, h2, h3 { font-family: var(--display); letter-spacing: .01em; text-wrap: balance; margin: 0 }
@@ -149,7 +152,7 @@ table.plan.grid td { padding-right: 8px; width: auto }
 table.plan.grid tr.now td { font-weight: 700 }
 
 /* bottom bars */
-nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr); padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5 }
+nav.tabs { flex: none; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr); padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5 }
 nav.tabs button { height: 60px; border: 0; background: none; color: var(--muted); font: 600 14px var(--display); text-transform: uppercase; letter-spacing: .04em; cursor: pointer; display: grid; place-items: center; gap: 0; padding-top: 6px }
 nav.tabs button svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2 }
 nav.tabs button[aria-current="page"] { color: var(--ink) }
@@ -163,10 +166,10 @@ nav.tabs button[aria-current="page"] { color: var(--ink) }
 <body>
 
 
-<div class="wrap">
+<div id="scroll"><div class="wrap">
   <header class="top"><h1>Plates &amp; Plates</h1><span class="date" id="today"></span></header>
     <main id="main" class="stack"></main>
-</div>
+</div></div>
 <div id="timer" class="timer" hidden><span>Rest <span class="t num" id="tleft">1:30</span></span><span style="display:flex;gap:6px"><button id="tadd">+30s</button><button id="tskip">Done</button></span></div>
 <div id="toast" class="toast" hidden></div>
 <nav class="tabs" aria-label="Sections">
@@ -223,7 +226,7 @@ function conditioning(d = new Date()) {
     ? "Repeated sprints: 8 × 30 m at 90–95% with 30 seconds' rest, then 4 × 5-10-5 shuttles (sprint 5 m, turn, 10 m, turn, 5 m)." + where
     : "Small-field intervals: 4 rounds of 4 minutes alternating 15 seconds hard and 15 seconds easy, with 2 minutes between rounds. That's what a 7v7 shift feels like." + where;
 }
-const APP_VERSION = "2026.10.11-2223";
+const APP_VERSION = "2026.10.11-2226";
 const ORDER = ["LA", "UA", "UB", "LB"];
 const DEFAULTS = { calTarget: 2200, protein: 160, fat: 65, groceryBudget: 350, diningBudget: 400 };
 
@@ -383,7 +386,7 @@ function finishWorkout() {
   if (!logged) { toast("Log reps for at least one set first."); return; }
   store.set("sessions", `${iso()}_${k}`, { date: iso(), workout: k, sets: out, cardio: !!d.cardio, savedAt: new Date().toISOString() });
   toast(ups ? `Workout saved. ${ups} lift${ups > 1 ? "s go" : " goes"} up next time.` : "Workout saved.");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  $("#scroll").scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // rest timer
@@ -803,7 +806,7 @@ function render() {
 }
 document.querySelector("nav.tabs").addEventListener("click", e => {
   const b = e.target.closest("button[data-tab]"); if (!b) return;
-  state.tab = b.dataset.tab; state.confirmDel = null; lsSet("pp:tab", state.tab); render(); window.scrollTo({ top: 0 });
+  state.tab = b.dataset.tab; state.confirmDel = null; lsSet("pp:tab", state.tab); render(); $("#scroll").scrollTo({ top: 0 });
 });
 const main = $("#main");
 main.addEventListener("click", e => {
