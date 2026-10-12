@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Plates">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#eef0f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1114" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>Plates & Plates</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: one-column phone logbook, bottom tab bar; workouts coded by bumper-plate colors */
+:root {
+  --bg: #eef0f3; --surface: #ffffff; --ink: #14171c; --muted: #5b6370; --line: #dde1e7; --soft: #f5f6f8;
+  --red: #c8342a; --blue: #2459c4; --yellow: #c99500; --green: #27864a;
+  --good: #1f7a46; --warn: #a86400; --bad: #b83227;
+  --good-bg: #e3f3ea; --warn-bg: #fbefdc; --bad-bg: #fbe5e3;
+  --btn: #14171c; --btn-ink: #ffffff;
+  --display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --body: "Source Sans 3", -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1114; --surface: #191c21; --ink: #eceef1; --muted: #9aa2ad; --line: #2b3038; --soft: #20242a;
+  --red: #ec5a4f; --blue: #5b8ef0; --yellow: #f0c23a; --green: #4cbc75;
+  --good: #5fd08e; --warn: #f0b04a; --bad: #f07a6f;
+  --good-bg: #16301f; --warn-bg: #352812; --bad-bg: #3a1a17;
+  --btn: #eceef1; --btn-ink: #14171c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1114; --surface: #191c21; --ink: #eceef1; --muted: #9aa2ad; --line: #2b3038; --soft: #20242a;
+  --red: #ec5a4f; --blue: #5b8ef0; --yellow: #f0c23a; --green: #4cbc75;
+  --good: #5fd08e; --warn: #f0b04a; --bad: #f07a6f;
+  --good-bg: #16301f; --warn-bg: #352812; --bad-bg: #3a1a17;
+  --btn: #eceef1; --btn-ink: #14171c; color-scheme: dark }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { background: var(--bg); color: var(--ink); font: 16px/1.45 var(--body); padding: 0 16px; padding-block: 0 calc(84px + env(safe-area-inset-bottom, 0px)) }
+.wrap { max-width: 560px; margin: 0 auto }
+header.top { padding-top: calc(18px + env(safe-area-inset-top, 0px)) !important; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-block: 18px 6px }
+h1, h2, h3 { font-family: var(--display); letter-spacing: .01em; text-wrap: balance; margin: 0 }
+h1 { font-size: 30px; font-weight: 700; text-transform: uppercase }
+h2 { font-size: 22px; font-weight: 700; text-transform: uppercase }
+h3 { font-size: 19px; font-weight: 600 }
+.date { color: var(--muted); font-size: 14px }
+.num { font-variant-numeric: tabular-nums }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600 }
+.stack { display: grid; gap: 12px }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px }
+.muted { color: var(--muted) }
+.small { font-size: 14px }
+.banner { font-size: 14px; padding: 10px 12px; border-radius: 10px; background: var(--warn-bg); color: var(--warn); margin-block: 8px }
+
+/* workout picker */
+.picker { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-block: 10px 14px }
+.pick { border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 8px 4px; font: 600 15px/1.1 var(--display); text-transform: uppercase; cursor: pointer; display: grid; justify-items: center; gap: 6px }
+.pick .plate { width: 22px; height: 22px; border-radius: 50%; border: 4px solid var(--c); background: transparent }
+.pick[aria-pressed="true"] { border-color: var(--c); background: var(--soft) }
+.pick[aria-pressed="true"] .plate { background: var(--c) }
+.pick small { font: 400 12px var(--body); text-transform: none; color: var(--muted) }
+
+.ex-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px }
+.ex-head > div { min-width: 0 }
+.target { font-size: 14px; color: var(--muted) }
+.last { font-size: 13px; color: var(--muted); margin-top: 2px }
+.pill { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap }
+.pill.up { background: var(--good-bg); color: var(--good) }
+.pill.hold { background: var(--soft); color: var(--muted) }
+.pill.miss { background: var(--warn-bg); color: var(--warn) }
+.pill.new { background: var(--soft); color: var(--ink) }
+.advice { font-size: 14px; margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: var(--soft) }
+.weightrow { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.stepper button { width: 40px; height: 40px; border: 0; background: var(--soft); color: var(--ink); font-size: 20px; cursor: pointer }
+.stepper input { width: 70px; height: 40px; border: 0; text-align: center; font: 700 20px var(--display); background: var(--surface); color: var(--ink) }
+.sets { display: grid; gap: 6px; margin-top: 10px }
+.set { display: grid; grid-template-columns: 52px 1fr 48px; align-items: center; gap: 8px }
+.set input { height: 42px; border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; font: 600 18px var(--body); background: var(--surface); color: var(--ink); width: 100%; min-width: 0 }
+.set .tick { height: 42px; border-radius: 10px; border: 2px solid var(--line); background: var(--surface); color: var(--muted); font-size: 18px; cursor: pointer }
+.set.done .tick { background: var(--good); border-color: var(--good); color: var(--surface) }
+.cardio { border-left: 0; display: flex; gap: 10px; align-items: flex-start }
+.cardio input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--good) }
+
+button.primary { width: 100%; height: 52px; border: 0; border-radius: 12px; background: var(--btn); color: var(--btn-ink); font: 700 20px var(--display); text-transform: uppercase; letter-spacing: .04em; cursor: pointer }
+button.secondary { height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font: 600 15px var(--body); cursor: pointer }
+button.link { border: 0; background: none; color: var(--muted); font: 600 14px var(--body); text-decoration: underline; cursor: pointer; padding: 4px }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px }
+
+/* body + money */
+.big { font: 700 44px/1 var(--display) }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+.tile { background: var(--soft); border-radius: 10px; padding: 10px }
+.tile .v { font: 700 26px/1.1 var(--display) }
+.form { display: flex; gap: 8px; flex-wrap: wrap; align-items: stretch }
+.form input, .form select { height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; font: 600 17px var(--body); background: var(--surface); color: var(--ink); min-width: 0 }
+.form input.w { flex: 1 1 120px }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.seg button { height: 44px; padding: 0 14px; border: 0; background: var(--surface); color: var(--muted); font: 600 15px var(--body); cursor: pointer }
+.seg button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink) }
+.meter { height: 12px; background: var(--soft); border-radius: 6px; position: relative; overflow: hidden; margin-top: 8px }
+.meter i { position: absolute; inset: 0 auto 0 0; border-radius: 6px; background: var(--good) }
+.meter i.over { background: var(--bad) }
+.meter i.warn { background: var(--warn) }
+.meter b { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink); opacity: .55 }
+ul.log { list-style: none; margin: 0; padding: 0; display: grid }
+ul.log li { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding-block: 9px; border-top: 1px solid var(--line) }
+ul.log li:first-child { border-top: 0 }
+ul.log li > span:first-child { min-width: 0 }
+.status { font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 6px }
+.status.good { background: var(--good-bg); color: var(--good) }
+.status.warn { background: var(--warn-bg); color: var(--warn) }
+.status.bad { background: var(--bad-bg); color: var(--bad) }
+.spark { width: 100%; height: 110px; display: block; margin-top: 8px }
+table.plan { width: 100%; border-collapse: collapse; font-size: 15px }
+table.plan td { padding: 7px 0; border-top: 1px solid var(--line); vertical-align: top }
+table.plan td:first-child { width: 56px; font-weight: 700 }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c); margin-right: 6px; vertical-align: 1px }
+
+/* meals */
+.recipe { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line) }
+.card h2 + .recipe { border-top: 0; padding-top: 0 }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px }
+.chips span { font-size: 13px; padding: 2px 8px; border-radius: 6px; background: var(--soft); color: var(--muted); font-weight: 600 }
+.swap { flex: none }
+details summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--blue); padding-block: 4px }
+ul.ing { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 4px; font-size: 15px }
+ul.ing li { display: flex; justify-content: space-between; gap: 10px }
+ol.steps { padding-left: 20px; margin: 8px 0; display: grid; gap: 6px; font-size: 15px }
+ul.shop { list-style: none; padding: 0; margin: 6px 0 0; display: grid }
+ul.shop li { border-top: 1px solid var(--line) }
+ul.shop label { display: grid; grid-template-columns: 24px 1fr auto; gap: 10px; align-items: start; padding-block: 8px; cursor: pointer }
+ul.shop label > span { min-width: 0 }
+ul.shop input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--good) }
+ul.shop input:checked + span { opacity: .45; text-decoration: line-through }
+
+/* bottom bars */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr); padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5 }
+nav.tabs button { height: 60px; border: 0; background: none; color: var(--muted); font: 600 14px var(--display); text-transform: uppercase; letter-spacing: .04em; cursor: pointer; display: grid; place-items: center; gap: 0; padding-top: 6px }
+nav.tabs button svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2 }
+nav.tabs button[aria-current="page"] { color: var(--ink) }
+.timer { position: fixed; left: 12px; right: 12px; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); max-width: 536px; margin: 0 auto; background: var(--btn); color: var(--btn-ink); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 6; font-weight: 600 }
+.timer .t { font: 700 26px var(--display) }
+.timer button { background: transparent; color: var(--btn-ink); border: 1px solid currentColor; border-radius: 8px; padding: 6px 10px; font: 600 14px var(--body); cursor: pointer; opacity: .85 }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(140px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600; z-index: 7; max-width: calc(100% - 32px); text-align: center }
+@media (prefers-reduced-motion: no-preference) { .toast { animation: rise .2s ease-out } @keyframes rise { from { opacity: 0; transform: translate(-50%, 8px) } } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top"><h1>Plates &amp; Plates</h1><span class="date" id="today"></span></header>
+    <main id="main" class="stack"></main>
+</div>
+<div id="timer" class="timer" hidden><span>Rest <span class="t num" id="tleft">1:30</span></span><span style="display:flex;gap:6px"><button id="tadd">+30s</button><button id="tskip">Done</button></span></div>
+<div id="toast" class="toast" hidden></div>
+<nav class="tabs" aria-label="Sections">
+  <button data-tab="lift"><svg viewBox="0 0 24 24"><path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/></svg>Lift</button>
+  <button data-tab="body"><svg viewBox="0 0 24 24"><path d="M4 18l5-6 4 3 7-9"/><path d="M15 6h5v5"/></svg>Body</button>
+  <button data-tab="meals"><svg viewBox="0 0 24 24"><path d="M7 3v7a2 2 0 0 0 4 0V3M9 10v11M17 21V3c-2 1.5-3 4-3 7h3"/></svg>Meals</button>
+  <button data-tab="food"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.2c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7-1.1 1.4-2.5 1.8-2.5.8-2.5 1.8 1.1 1.7 2.5 1.7 2.5-.7 2.5-1.7"/></svg>Food $</button>
+  <button data-tab="plan"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Plan</button>
+</nav>
+
+<script>
+// ---------- program ----------
+const W = {
+  LA: { name: "Lower A", c: "var(--red)", day: 1, cardio: "10 min easy cardio: bike or incline walk.", ex: [
+    { id: "squat", n: "Back squat", sets: 3, lo: 6, hi: 8, type: "load", inc: 10, rest: 150 },
+    { id: "rdl", n: "Romanian deadlift", sets: 3, lo: 8, hi: 10, type: "load", inc: 10, rest: 120 },
+    { id: "lunge", n: "Walking lunges", unit: "lb per hand · reps per leg", sets: 2, lo: 10, hi: 12, type: "load", inc: 5, rest: 90 },
+    { id: "legcurl", n: "Leg curl", sets: 2, lo: 10, hi: 12, type: "load", inc: 5, rest: 90 },
+    { id: "plank", n: "Plank", sets: 3, lo: 30, hi: 45, type: "time", rest: 60 } ] },
+  UA: { name: "Upper A", c: "var(--blue)", day: 2, cardio: "20 min steady cardio at a pace where you can still talk.", ex: [
+    { id: "bench", n: "Bench press", sets: 3, lo: 6, hi: 8, type: "load", inc: 5, rest: 150 },
+    { id: "cablerow", n: "Seated cable row", sets: 3, lo: 8, hi: 10, type: "load", inc: 5, rest: 120 },
+    { id: "ohp", n: "Overhead dumbbell press", unit: "lb per hand", sets: 2, lo: 8, hi: 10, type: "load", inc: 5, rest: 120 },
+    { id: "pulldown", n: "Lat pulldown", sets: 2, lo: 10, hi: 12, type: "load", inc: 5, rest: 90 },
+    { id: "curl", n: "Dumbbell curls", unit: "lb per hand", sets: 2, lo: 10, hi: 12, type: "load", inc: 5, rest: 60 },
+    { id: "pushdown", n: "Triceps pushdown", sets: 2, lo: 10, hi: 12, type: "load", inc: 5, rest: 60 } ] },
+  LB: { name: "Lower B", c: "var(--yellow)", day: 4, cardio: "10 min easy cardio: bike or incline walk.", ex: [
+    { id: "deadlift", n: "Deadlift (trap bar or conventional)", sets: 3, lo: 5, hi: 5, type: "load", inc: 10, rest: 180 },
+    { id: "legpress", n: "Leg press", sets: 3, lo: 10, hi: 12, type: "load", inc: 10, rest: 120 },
+    { id: "bss", n: "Bulgarian split squat", unit: "lb per hand · reps per leg", sets: 2, lo: 8, hi: 10, type: "load", inc: 5, rest: 90 },
+    { id: "calf", n: "Calf raises", sets: 3, lo: 12, hi: 15, type: "load", inc: 10, rest: 60 },
+    { id: "kneeraise", n: "Hanging knee raises", sets: 3, lo: 10, hi: 15, type: "reps", rest: 60 } ] },
+  UB: { name: "Upper B", c: "var(--green)", day: 5, cardio: "Intervals: 5 min warm-up, then 6–8 rounds of 30s hard / 90s easy on a bike or rower.", ex: [
+    { id: "pullup", n: "Pull-ups", unit: "lb of assistance (0 = bodyweight)", sets: 3, lo: 6, hi: 10, type: "assist", inc: 10, rest: 150 },
+    { id: "incline", n: "Incline dumbbell press", unit: "lb per hand", sets: 3, lo: 8, hi: 10, type: "load", inc: 5, rest: 120 },
+    { id: "dbrow", n: "One-arm dumbbell row", unit: "lb · reps per arm", sets: 3, lo: 10, hi: 12, type: "load", inc: 5, rest: 90 },
+    { id: "lateral", n: "Lateral raises", unit: "lb per hand", sets: 3, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 },
+    { id: "facepull", n: "Face pulls", sets: 2, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 } ] },
+};
+const APP_VERSION = "2026.10.11-1";
+const ORDER = ["LA", "UA", "LB", "UB"];
+const DEFAULTS = { calTarget: 2200, protein: 160, fat: 65, groceryBudget: 350, diningBudget: 400 };
+
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const iso = (d = new Date()) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const parseISO = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const fmtDay = s => parseISO(s).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+const money = n => "$" + (Math.round(n * 100) / 100).toLocaleString(undefined, { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+const lsGet = (k, f) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : f; } catch { return f; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 2600); }
+
+// ---------- data store: shared db when available, this device otherwise ----------
+const COLS = ["settings", "lifts", "sessions", "weighins", "spend", "menus"];
+const cache = Object.fromEntries(COLS.map(c => [c, {}]));
+let db = null, mode = "loading";
+const store = {
+  async set(col, id, data) {
+    cache[col][id] = data; render();
+    if (db) { try { await db.collection(col).doc(id).set(data); } catch (e) { toast("Couldn't save. Check your connection and try again."); } }
+    else lsSet("pp:" + col, cache[col]);
+  },
+  async add(col, data) {
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    return this.set(col, id, data);
+  },
+  async del(col, id) {
+    delete cache[col][id]; render();
+    if (db) { try { await db.collection(col).doc(id).delete(); } catch { toast("Couldn't delete. Try again."); } }
+    else lsSet("pp:" + col, cache[col]);
+  },
+};
+let pendingRender = false;
+function liveRender() {
+  const a = document.activeElement;
+  if (a && a.matches("main input, main select")) { pendingRender = true; return; }
+  render();
+}
+document.addEventListener("focusout", () => setTimeout(() => { if (pendingRender && !document.activeElement?.matches("main input, main select")) { pendingRender = false; render(); } }, 0));
+
+// This app keeps its data on the phone. On first launch it loads the starting data from the Claude version.
+const SEED = {
+  settings: { main: { calTarget: 2200, protein: 160, fat: 65, groceryBudget: 350, diningBudget: 400 } },
+  weighins: { "2026-10-02": { date: "2026-10-02", weight: 171.2 } },
+  lifts: { bench: { weight: 115, oneRepMax: 160 }, squat: { weight: 125, oneRepMax: 180 }, deadlift: { weight: 155 }, rdl: { weight: 115 },
+    lunge: { weight: 20 }, legcurl: { weight: 50 }, cablerow: { weight: 70 }, ohp: { weight: 20 }, pulldown: { weight: 70 }, curl: { weight: 15 },
+    pushdown: { weight: 30 }, legpress: { weight: 140 }, bss: { weight: 15 }, calf: { weight: 90 }, pullup: { weight: 50 }, incline: { weight: 30 },
+    dbrow: { weight: 35 }, lateral: { weight: 10 }, facepull: { weight: 25 } },
+};
+mode = "local";
+if (!lsGet("pp:seeded", false)) {
+  for (const col of COLS) if (SEED[col] && !Object.keys(lsGet("pp:" + col, {})).length) lsSet("pp:" + col, SEED[col]);
+  lsSet("pp:seeded", true);
+}
+for (const col of COLS) cache[col] = lsGet("pp:" + col, {});
+try { navigator.storage?.persist?.(); } catch {}
+
+const settings = () => ({ ...DEFAULTS, ...(cache.settings.main || {}) });
+
+// ---------- progression ----------
+function advise(e, L) {
+  if (!L || !L.lastReps?.length) {
+    if (e.type === "time") return { pill: "new", label: "First time", text: `Hold each set ${e.lo}–${e.hi} seconds.` };
+    if (e.type === "reps") return { pill: "new", label: "First time", text: `Aim for ${e.lo}–${e.hi} controlled reps.` };
+    if (L?.weight != null) return { pill: "new", label: "Starting weight", text: `Start at ${L.weight} lb. If the first set leaves 4+ reps in the tank, go up for the next set. If you can't reach ${e.lo} reps, go down.` };
+    if (e.type === "assist") return { pill: "new", label: "First time", text: "Pick an assistance level that lets you get 6 clean reps." };
+    return { pill: "new", label: "First time", text: "Pick a weight you could lift 2–3 more reps with than the target. Learn the movement first." };
+  }
+  const full = L.lastReps.length >= e.sets && L.lastReps.every(r => r >= e.hi);
+  const missed = L.lastReps.some(r => r < e.lo);
+  if (e.type === "time") return full ? { pill: "up", label: "+5 sec", text: `You held ${e.hi}s on every set. Add 5 seconds or a harder variation.` } : { pill: "hold", label: "Hold", text: `Build to ${e.hi}s on every set.` };
+  if (e.type === "reps") return full ? { pill: "up", label: "Harder", text: `You hit ${e.hi} on every set. Slow the lowering to 3 seconds or raise straight legs.` } : { pill: "hold", label: "Add reps", text: `Work toward ${e.hi} reps on every set.` };
+  if (full) {
+    if (e.type === "assist") return L.weight > 0
+      ? { pill: "up", label: `−${e.inc} lb assist`, text: `You hit ${e.sets}×${e.hi}. Use ${e.inc} lb less assistance.` }
+      : { pill: "up", label: "Add weight", text: `${e.sets}×${e.hi} at bodyweight. Add 5–10 lb with a belt or dumbbell.` };
+    return { pill: "up", label: `+${e.inc} lb`, text: `You hit ${e.sets}×${e.hi} last time. Go up to ${L.weight + e.inc} lb.` };
+  }
+  if (missed) return { pill: "miss", label: "Repeat", text: `A set fell under ${e.lo} reps. Stay at ${L.weight} lb and own it. Miss twice in a row? Drop 10%.` };
+  return { pill: "hold", label: "Same weight", text: `Stay at ${L.weight} lb and add a rep where you can. Go up when every set hits ${e.hi}.` };
+}
+function nextWeight(e, L) {
+  if (!L || L.weight == null) return "";
+  const full = L.lastReps?.length >= e.sets && L.lastReps.every(r => r >= e.hi);
+  if (!full) return L.weight;
+  if (e.type === "load") return L.weight + e.inc;
+  if (e.type === "assist") return Math.max(0, L.weight - e.inc);
+  return L.weight;
+}
+
+// ---------- lift tab ----------
+let state = { tab: lsGet("pp:tab", "lift"), workout: null, spendKind: "grocery", confirmDel: null };
+function scheduled() {
+  const dow = new Date().getDay();
+  return ORDER.find(k => W[k].day === dow) || null;
+}
+function nextInRotation() {
+  const s = Object.values(cache.sessions).sort((a, b) => (a.date + a.savedAt).localeCompare(b.date + b.savedAt)).pop();
+  return s ? ORDER[(ORDER.indexOf(s.workout) + 1) % 4] : "LA";
+}
+const draftKey = k => `pp:draft:${iso()}:${k}`;
+function getDraft(k) { return lsGet(draftKey(k), { w: {}, r: {}, cardio: false }); }
+function saveDraft(k, d) { lsSet(draftKey(k), d); }
+
+function renderLift() {
+  const sched = scheduled();
+  const k = state.workout || sched || nextInRotation();
+  state.workout = k;
+  const w = W[k], d = getDraft(k);
+  const doneToday = cache.sessions[`${iso()}_${k}`];
+  const intro = sched ? `Today is <b>${W[sched].name}</b> day.` : `Rest day on the schedule. Next in rotation: <b>${W[nextInRotation()].name}</b>.`;
+  let h = `<p class="small muted" style="margin:0">${intro} ${doneToday ? "<b>Logged today ✓</b>" : ""}</p>
+  <div class="picker" role="group" aria-label="Workout">${ORDER.map(x => `<button class="pick" data-w="${x}" style="--c:${W[x].c}" aria-pressed="${x === k}"><span class="plate"></span>${W[x].name}<small>${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][W[x].day]}</small></button>`).join("")}</div>`;
+  for (const e of w.ex) {
+    const L = cache.lifts[e.id], a = advise(e, L);
+    const wt = d.w[e.id] ?? nextWeight(e, L);
+    const reps = d.r[e.id] || [];
+    const unitLbl = e.type === "time" ? "seconds" : "reps";
+    const last = L?.lastReps?.length ? `Last (${fmtDay(L.lastDate)}): ${e.type === "load" || e.type === "assist" ? L.weight + " lb × " : ""}${L.lastReps.join(", ")}` : "";
+    h += `<section class="card" style="border-top:4px solid ${w.c}">
+      <div class="ex-head"><div><h3>${esc(e.n)}</h3><div class="target">${e.sets} × ${e.lo === e.hi ? e.lo : e.lo + "–" + e.hi} ${unitLbl}${e.unit ? " · " + esc(e.unit) : ""}</div>${last ? `<div class="last num">${last}</div>` : ""}</div>
+      <span class="pill ${a.pill}">${a.pill === "up" ? "↑ " : ""}${esc(a.label)}</span></div>
+      <div class="advice">${esc(a.text)}</div>
+      ${e.type === "load" || e.type === "assist" ? `<div class="weightrow"><span class="label">${e.type === "assist" ? "Assist" : "Weight"}</span>
+        <span class="stepper"><button data-step="-1" data-ex="${e.id}" aria-label="Less weight">−</button><input id="w-${e.id}" class="num" inputmode="decimal" data-wt="${e.id}" value="${esc(wt)}" placeholder="lb" aria-label="${esc(e.n)} weight in pounds"><button data-step="1" data-ex="${e.id}" aria-label="More weight">+</button></span><span class="muted small">lb</span></div>` : ""}
+      <div class="sets">${Array.from({ length: e.sets }, (_, i) => `<div class="set ${reps[i] != null && reps[i] !== "" ? "done" : ""}" data-row="${e.id}-${i}">
+        <span class="label">Set ${i + 1}</span>
+        <input id="r-${e.id}-${i}" class="num" inputmode="numeric" data-rep="${e.id}" data-i="${i}" value="${esc(reps[i] ?? "")}" placeholder="${unitLbl}" aria-label="Set ${i + 1} ${unitLbl}">
+        <button class="tick" data-tick="${e.id}" data-i="${i}" aria-label="Mark set ${i + 1} done and start rest timer">✓</button></div>`).join("")}</div>
+    </section>`;
+  }
+  h += `<section class="card cardio"><input type="checkbox" id="cardio" ${d.cardio ? "checked" : ""}><label for="cardio"><b>Cardio</b><br><span class="small muted">${esc(w.cardio)}</span></label></section>
+  <button class="primary" id="finish">${doneToday ? "Update today's workout" : "Finish workout"}</button>
+  <p class="small muted" style="margin:0">Go up only when every set hits the top of the range. First 2 weeks: keep it easy and learn the movements. Every 6–8 weeks, take a lighter week with about half the sets.</p>`;
+  return h;
+}
+
+function finishWorkout() {
+  const k = state.workout, w = W[k], d = getDraft(k);
+  const out = {}; let ups = 0, logged = 0;
+  for (const e of w.ex) {
+    const reps = (d.r[e.id] || []).map(Number).filter(n => n > 0);
+    if (!reps.length) continue;
+    logged++;
+    const wt = e.type === "load" || e.type === "assist" ? Number(d.w[e.id] ?? nextWeight(e, cache.lifts[e.id])) || 0 : null;
+    out[e.id] = { weight: wt, reps };
+    const rec = { weight: wt, lastReps: reps, lastDate: iso() };
+    if (reps.length >= e.sets && reps.every(r => r >= e.hi)) ups++;
+    store.set("lifts", e.id, rec);
+  }
+  if (!logged) { toast("Log reps for at least one set first."); return; }
+  store.set("sessions", `${iso()}_${k}`, { date: iso(), workout: k, sets: out, cardio: !!d.cardio, savedAt: new Date().toISOString() });
+  toast(ups ? `Workout saved. ${ups} lift${ups > 1 ? "s go" : " goes"} up next time.` : "Workout saved.");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// rest timer
+let tEnd = 0, tInt = null;
+function startTimer(sec) {
+  tEnd = Date.now() + sec * 1000; $("#timer").hidden = false; tick();
+  clearInterval(tInt); tInt = setInterval(tick, 250);
+}
+function tick() {
+  const left = Math.max(0, Math.round((tEnd - Date.now()) / 1000));
+  $("#tleft").textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+  if (!left) { clearInterval(tInt); $("#tleft").textContent = "Go"; try { navigator.vibrate?.(300); } catch {} setTimeout(() => { if (Date.now() > tEnd) $("#timer").hidden = true; }, 2500); }
+}
+$("#tadd").onclick = () => { tEnd = Math.max(tEnd, Date.now()) + 30000; clearInterval(tInt); tInt = setInterval(tick, 250); tick(); };
+$("#tskip").onclick = () => { clearInterval(tInt); $("#timer").hidden = true; };
+
+// ---------- body tab ----------
+function weekAvgs() {
+  const ws = Object.values(cache.weighins).filter(x => x.weight > 0);
+  const now = parseISO(iso());
+  const bucket = i => {
+    const xs = ws.filter(x => { const age = Math.round((now - parseISO(x.date)) / 864e5); return age >= i * 7 && age < (i + 1) * 7; });
+    return xs.length ? xs.reduce((s, x) => s + x.weight, 0) / xs.length : null;
+  };
+  return [bucket(0), bucket(1), bucket(2)];
+}
+function calorieAdvice() {
+  const [w0, w1, w2] = weekAvgs();
+  if (w0 == null || w1 == null) return { cls: "warn", head: "Keep logging", text: "Weigh in a few mornings a week. You'll get a recommendation once there are two weeks of data.", delta: 0 };
+  const d1 = w0 - w1, d2 = w2 != null ? w1 - w2 : null;
+  const rate = `${d1 <= 0 ? "Down" : "Up"} ${Math.abs(d1).toFixed(1)} lb vs last week.`;
+  if (d1 < -1.5) return { cls: "warn", head: "Losing too fast", text: `${rate} Add about 150 kcal a day so you keep your strength.`, delta: 150 };
+  if (d1 > -0.25 && d2 != null && d2 > -0.25) return { cls: "bad", head: "Stalled 2+ weeks", text: `${rate} Cut about 150 kcal a day, from carbs or fat (never protein). If your waist is shrinking and lifts are going up, it's working; don't change anything.`, delta: -150 };
+  if (d1 > -0.25) return { cls: "warn", head: "Flat this week", text: `${rate} Give it one more week before changing anything.`, delta: 0 };
+  return { cls: "good", head: "On track", text: `${rate} Target is 0.5–1 lb a week. Keep going.`, delta: 0 };
+}
+function spark(ws) {
+  if (ws.length < 2) return "";
+  const W_ = 320, H_ = 110, p = 22;
+  const vs = ws.map(x => x.weight), lo = Math.floor(Math.min(...vs) - 1), hi = Math.ceil(Math.max(...vs) + 1);
+  const t0 = parseISO(ws[0].date), t1 = parseISO(ws[ws.length - 1].date), span = Math.max(1, t1 - t0);
+  const X = d => p + (parseISO(d) - t0) / span * (W_ - p * 2), Y = v => 8 + (hi - v) / (hi - lo) * (H_ - 30);
+  const pts = ws.map(x => `${X(x.date).toFixed(1)},${Y(x.weight).toFixed(1)}`).join(" ");
+  const last = ws[ws.length - 1];
+  return `<svg class="spark" viewBox="0 0 ${W_} ${H_}" role="img" aria-label="Weight trend">
+    <line x1="${p}" x2="${W_ - p}" y1="${Y(hi)}" y2="${Y(hi)}" stroke="var(--line)"/><line x1="${p}" x2="${W_ - p}" y1="${Y(lo)}" y2="${Y(lo)}" stroke="var(--line)"/>
+    <text x="0" y="${Y(hi) + 4}" font-size="10" fill="var(--muted)">${hi}</text><text x="0" y="${Y(lo) + 4}" font-size="10" fill="var(--muted)">${lo}</text>
+    <polygon points="${X(ws[0].date)},${Y(lo)} ${pts} ${X(last.date)},${Y(lo)}" fill="var(--blue)" opacity=".12"/>
+    <polyline points="${pts}" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round"/>
+    <circle cx="${X(last.date)}" cy="${Y(last.weight)}" r="4.5" fill="var(--blue)"/>
+    <text x="${p}" y="${H_ - 4}" font-size="10" fill="var(--muted)">${fmtDay(ws[0].date)}</text><text x="${W_ - p}" y="${H_ - 4}" font-size="10" fill="var(--muted)" text-anchor="end">${fmtDay(last.date)}</text></svg>`;
+}
+function renderBody() {
+  const s = settings(), ws = Object.entries(cache.weighins).map(([id, x]) => ({ id, ...x })).filter(x => x.weight > 0).sort((a, b) => a.date.localeCompare(b.date));
+  const latest = ws[ws.length - 1], [w0, w1] = weekAvgs(), adv = calorieAdvice();
+  const t = s.calTarget, train = t + 100, rest = t - 150, carbs = k => Math.max(0, Math.round((k - s.protein * 4 - s.fat * 9) / 4));
+  const todayW = cache.weighins[iso()]?.weight ?? "";
+  return `<section class="card"><div class="row"><span class="label">Latest weigh-in</span><span class="small muted">${latest ? fmtDay(latest.date) : ""}</span></div>
+    <div class="row" style="margin-top:4px"><span class="big num">${latest ? latest.weight.toFixed(1) : "—"}<span class="small muted" style="font:600 16px var(--body)"> lb</span></span>
+    <span class="small muted num">7-day avg ${w0 != null ? w0.toFixed(1) : "—"}${w1 != null ? `<br>prev week ${w1.toFixed(1)}` : ""}</span></div>
+    ${ws.length >= 2 ? spark(ws.slice(-30)) : `<p class="small muted">Your trend line appears after a second weigh-in.</p>`}
+    <form class="form" id="wform" style="margin-top:10px"><input class="w num" id="wt" inputmode="decimal" placeholder="Today's weight (lb)" value="${esc(todayW)}" aria-label="Today's weight in pounds"><button class="secondary" type="submit">${todayW ? "Update" : "Log weight"}</button></form>
+    <p class="small muted" style="margin:6px 0 0">Weigh in the morning, after the bathroom, before eating.</p></section>
+  <section class="card"><div class="row"><h2>Calories</h2><span class="status ${adv.cls}">${esc(adv.head)}</span></div>
+    <p class="small" style="margin:6px 0 10px">${esc(adv.text)}</p>
+    ${adv.delta ? `<button class="secondary" id="apply" data-d="${adv.delta}">${adv.delta > 0 ? "Raise" : "Lower"} target to ${t + adv.delta} kcal</button>` : ""}
+    <div class="grid2" style="margin-top:12px">
+      <div class="tile"><div class="label">Training day</div><div class="v num">${train.toLocaleString()}</div><div class="small muted num">P ${s.protein} · F ${s.fat} · C ${carbs(train)} g</div></div>
+      <div class="tile"><div class="label">Rest day</div><div class="v num">${rest.toLocaleString()}</div><div class="small muted num">P ${s.protein} · F ${s.fat} · C ${carbs(rest)} g</div></div>
+    </div>
+    <p class="small muted" style="margin:10px 0 0">Average target: ${t.toLocaleString()} kcal. Protein is ${s.protein} g every day. That number never gets cut.${s.changedAt ? ` Last changed ${fmtDay(s.changedAt)}.` : ""}</p></section>
+  ${ws.length ? `<section class="card"><h3>History</h3><ul class="log">${ws.slice(-10).reverse().map(x => `<li><span>${fmtDay(x.date)}</span><span class="num"><b>${x.weight.toFixed(1)}</b> lb ${state.confirmDel === "w:" + x.id ? `<button class="link" data-delw="${x.id}">Confirm remove</button>` : `<button class="link" data-askw="${x.id}" aria-label="Remove ${fmtDay(x.date)} weigh-in">Remove</button>`}</span></li>`).join("")}</ul></section>` : ""}`;
+}
+
+// ---------- food $ tab ----------
+function renderFood() {
+  const s = settings(), now = new Date(), ym = iso().slice(0, 7);
+  const dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), dom = now.getDate(), pace = dom / dim;
+  const items = Object.entries(cache.spend).map(([id, x]) => ({ id, ...x })).filter(x => x.date?.startsWith(ym)).sort((a, b) => b.date.localeCompare(a.date) || (b.at || "").localeCompare(a.at || ""));
+  const sum = k => items.filter(x => x.kind === k).reduce((t, x) => t + x.amount, 0);
+  const meter = (label, spent, budget) => {
+    const pct = spent / budget, exp = budget * pace, left = budget - spent;
+    const cls = spent > budget ? "over" : spent > exp * 1.1 ? "warn" : "";
+    const st = spent > budget ? ["bad", "Over budget"] : spent > exp * 1.1 ? ["warn", "Ahead of pace"] : ["good", "On pace"];
+    return `<div><div class="row"><b>${label}</b><span class="status ${st[0]}">${st[1]}</span></div>
+      <div class="row small num" style="margin-top:2px"><span>${money(spent)} of ${money(budget)}</span><span class="muted">${left >= 0 ? money(left) + " left" : money(-left) + " over"}</span></div>
+      <div class="meter" aria-hidden="true"><i class="${cls}" style="width:${Math.min(100, pct * 100)}%"></i><b style="left:${pace * 100}%"></b></div></div>`;
+  };
+  const dLeft = s.diningBudget - sum("dining");
+  return `<section class="card stack"><div class="row"><h2>${now.toLocaleDateString(undefined, { month: "long" })} food</h2><span class="small muted">Day ${dom} of ${dim}</span></div>
+    ${meter("Groceries", sum("grocery"), s.groceryBudget)}
+    ${meter("Dining & bars", sum("dining"), s.diningBudget)}
+    <p class="small muted" style="margin:0">The tick mark shows where you should be by today. ${dLeft > 0 ? `About ${Math.floor(dLeft / 50)} meals out left at ~$50 each.` : "Dining is used up for the month. Cook from the grocery list."}</p></section>
+  <section class="card"><h3>Add spending</h3>
+    <form class="form" id="sform" style="margin-top:8px">
+      <span class="seg" role="group" aria-label="Category"><button type="button" data-kind="grocery" aria-pressed="${state.spendKind === "grocery"}">Groceries</button><button type="button" data-kind="dining" aria-pressed="${state.spendKind === "dining"}">Dining</button></span>
+      <input class="w num" id="amt" inputmode="decimal" placeholder="Amount ($)" aria-label="Amount in dollars">
+      <input class="w" id="note" placeholder="${state.spendKind === "grocery" ? "Aldi, Kroger…" : "Where?"}" aria-label="Note">
+      <button class="secondary" type="submit">Add</button></form></section>
+  <section class="card"><h3>This month</h3>${items.length ? `<ul class="log">${items.map(x => `<li><span><b>${esc(x.note || (x.kind === "grocery" ? "Groceries" : "Dining"))}</b><br><span class="small muted">${fmtDay(x.date)} · ${x.kind === "grocery" ? "Groceries" : "Dining"}</span></span><span class="num"><b>${money(x.amount)}</b> ${state.confirmDel === "s:" + x.id ? `<button class="link" data-dels="${x.id}">Confirm remove</button>` : `<button class="link" data-asks="${x.id}">Remove</button>`}</span></li>`).join("")}</ul>` : `<p class="small muted" style="margin:6px 0 0">Nothing logged this month. Add each grocery run and meal out above. This week's grocery list is on the Meals tab.</p>`}</section>`;
+}
+
+// ---------- plan tab ----------
+function renderPlan() {
+  const s = settings();
+  const rows = [["Mon", "LA"], ["Tue", "UA"], ["Wed", null, "Rest or a 30–45 min walk"], ["Thu", "LB"], ["Fri", "UB"], ["Sat", null, "Optional: 30–45 min easy run, bike or hike"], ["Sun", null, "Rest"]];
+  return `<section class="card"><h2>The week</h2><table class="plan" style="margin-top:6px"><tbody>${rows.map(([d, k, t]) => `<tr><td>${d}</td><td>${k ? `<span class="dot" style="--c:${W[k].c}"></span><b>${W[k].name}</b><br><span class="small muted">${esc(W[k].cardio)}</span>` : `<span class="muted">${t}</span>`}</td></tr>`).join("")}</tbody></table>
+    <p class="small muted" style="margin:8px 0 0">Plus 8–10k steps a day. Add cardio time slowly, about 10% a week.</p></section>
+  <section class="card"><h2>Eating</h2><p class="small" style="margin:6px 0 0">Targets: ${s.calTarget.toLocaleString()} kcal average and ${s.protein} g protein a day. The Meals tab has this week's menu, recipes and grocery list. The menu changes every Sunday, and you can swap any recipe.</p></section>
+  <section class="card"><h2>Your data</h2>
+    <p class="small" style="margin:6px 0 10px">Everything is saved on this phone. Make a backup every week or two, and before you get a new phone. Send the backup file to Claude when you want a progress review.</p>
+    <div class="form"><button class="secondary" id="backup">Save backup</button><label class="secondary" style="display:inline-flex;align-items:center" for="restore">Restore from backup</label><input type="file" id="restore" accept="application/json,.json" hidden></div>
+    <p class="small muted" style="margin:10px 0 0">Version ${APP_VERSION}${lsGet("pp:lastBackup", "") ? ` · last backup ${fmtDay(lsGet("pp:lastBackup", ""))}` : " · no backup yet"}</p></section>`;
+}
+
+// ---------- meals: ingredients (Aldi/Kroger estimates, per unit) ----------
+// [name, unit, $/unit, kcal/unit, protein g/unit, package size in units, package label, pantry staple?, aisle]
+const ING = {
+  egg: ["Eggs", "", .222, 72, 6.3, 18, "18-ct carton", 0, "Dairy & eggs"],
+  yogurt: ["Plain nonfat Greek yogurt", "cup", 1.12, 130, 23, 4, "32 oz tub", 0, "Dairy & eggs"],
+  cottage: ["Low-fat cottage cheese", "cup", 1.10, 180, 24, 3, "24 oz tub", 0, "Dairy & eggs"],
+  cheese: ["Shredded cheese", "× ¼ cup", .286, 110, 7, 8, "8 oz bag", 0, "Dairy & eggs"],
+  salmon: ["Frozen salmon fillets", "oz", .437, 59, 5.7, 32, "2 lb bag", 0, "Frozen"],
+  tilapia: ["Frozen tilapia or swai", "oz", .25, 27, 5.7, 32, "2 lb bag", 0, "Frozen"],
+  cod: ["Frozen cod fillets", "oz", .406, 23, 5, 32, "2 lb bag", 0, "Frozen"],
+  shrimp: ["Frozen raw shrimp", "oz", .375, 24, 5.7, 32, "2 lb bag", 0, "Frozen"],
+  fveg: ["Frozen vegetables", "g", .00379, .4, .03, 340, "12 oz bag", 0, "Frozen"],
+  edamame: ["Frozen shelled edamame", "g", .00674, 1.21, .11, 340, "12 oz bag", 0, "Frozen"],
+  berries: ["Frozen mixed berries", "cup", .93, 70, 1, 9.7, "3 lb bag", 0, "Frozen"],
+  tuna: ["Canned tuna", "can", 1.09, 110, 24, 1, "5 oz can", 0, "Canned & jarred"],
+  csalmon: ["Canned salmon", "can", 4.49, 580, 98, 1, "14.75 oz can", 0, "Canned & jarred"],
+  beans: ["Black beans", "can", .89, 385, 24, 1, "15 oz can", 0, "Canned & jarred"],
+  chickpeas: ["Chickpeas", "can", .89, 400, 21, 1, "15 oz can", 0, "Canned & jarred"],
+  tomatoes: ["Diced tomatoes", "can", .89, 80, 4, 1, "14.5 oz can", 0, "Canned & jarred"],
+  coconut: ["Light coconut milk", "can", 1.49, 300, 3, 1, "13.5 oz can", 0, "Canned & jarred"],
+  marinara: ["Marinara sauce", "g", .00293, .5, .015, 680, "24 oz jar", 0, "Canned & jarred"],
+  salsa: ["Salsa", "g", .00548, .3, .015, 454, "16 oz jar", 0, "Canned & jarred"],
+  tofu: ["Extra-firm tofu", "oz", .142, 40, 2.86, 14, "14 oz block", 0, "Produce"],
+  spinach: ["Fresh spinach", "g", .00877, .23, .029, 284, "10 oz bag", 0, "Produce"],
+  pepper: ["Bell pepper", "", .99, 30, 1, 1, "each", 0, "Produce"],
+  onion: ["Onion", "", .5, 45, 1.2, 1, "each", 0, "Produce"],
+  slaw: ["Coleslaw mix", "g", .005, .25, .013, 397, "14 oz bag", 0, "Produce"],
+  potato: ["Potatoes", "g", .00176, .77, .02, 2268, "5 lb bag", 0, "Produce"],
+  sweetpot: ["Sweet potatoes", "g", .00284, .86, .016, 454, "lb", 0, "Produce"],
+  banana: ["Bananas", "", .27, 105, 1.3, 1, "each", 0, "Produce"],
+  apple: ["Apples", "", .57, 95, .5, 1, "each", 0, "Produce"],
+  avocado: ["Avocado", "", .89, 240, 3, 1, "each", 0, "Produce"],
+  lime: ["Limes", "", .33, 10, .2, 1, "each", 0, "Produce"],
+  bread: ["Whole wheat bread", "slice", .10, 80, 4, 20, "20-slice loaf", 0, "Bread & grains"],
+  tortilla: ["Whole wheat tortillas", "", .31, 130, 4, 8, "8-ct pack", 0, "Bread & grains"],
+  pasta: ["Whole wheat pasta (dry)", "g", .00262, 3.48, .14, 454, "1 lb box", 0, "Bread & grains"],
+  oats: ["Rolled oats", "g", .00335, 3.79, .13, 1190, "42 oz canister", 1, "Bread & grains"],
+  rice: ["Rice (dry)", "g", .00198, 3.6, .07, 2268, "5 lb bag", 1, "Bread & grains"],
+  lentils: ["Dry lentils", "g", .00328, 3.52, .25, 454, "1 lb bag", 1, "Bread & grains"],
+  whey: ["Whey protein", "scoop", .733, 120, 24, 75, "5 lb tub", 1, "Pantry"],
+  pb: ["Peanut butter", "tbsp", .07, 95, 3.5, 71, "40 oz jar", 1, "Pantry"],
+  oil: ["Olive oil", "tbsp", .206, 120, 0, 34, "17 oz bottle", 1, "Pantry"],
+  honey: ["Honey", "tbsp", .10, 64, 0, 24, "12 oz bottle", 1, "Pantry"],
+};
+const AISLES = ["Produce", "Frozen", "Dairy & eggs", "Canned & jarred", "Bread & grains", "Pantry"];
+const SPICE_ALLOWANCE = 4; // $/week for spices, sauces, condiments (same as the workbook)
+
+// recipes: quantities are per serving
+const RECIPES = [
+  { id: "scramble", slot: "b", n: "Veggie egg scramble", time: "10 min", ing: [["egg", 3], ["spinach", 50], ["pepper", .5], ["bread", 1], ["cottage", .5]], pantry: "salt, pepper, hot sauce",
+    steps: ["Sauté the diced pepper in a nonstick pan for 2–3 min, then add the spinach until it wilts.", "Add the beaten eggs and stir gently over medium-low until just set.", "Serve with toast and cottage cheese on the side."] },
+  { id: "oats", slot: "b", n: "Protein overnight oats", time: "5 min, the night before", ing: [["oats", 50], ["whey", 1], ["yogurt", .5], ["berries", .5]], pantry: "cinnamon",
+    steps: ["In a jar, stir the oats, whey, yogurt and ½ cup water until smooth.", "Top with frozen berries, cover and refrigerate overnight.", "Make 3–4 jars at once. They keep 4 days."] },
+  { id: "burrito", slot: "b", n: "Freezer breakfast burritos", time: "Batch: 30 min", ing: [["egg", 3], ["tortilla", 1], ["beans", .2], ["cheese", .5], ["salsa", 30]], pantry: "cumin, chili powder",
+    steps: ["Scramble all the eggs with a pinch of cumin and chili powder.", "Warm the drained beans. Fill each tortilla with eggs, beans, cheese and salsa, then roll tightly.", "Wrap each one in foil and freeze.", "In the morning, unwrap, wrap in a paper towel and microwave 2–2½ min, flipping halfway."] },
+  { id: "cottagebowl", slot: "b", n: "Cottage cheese berry bowl", time: "5 min", ing: [["cottage", 1], ["whey", .5], ["berries", 1], ["oats", 30], ["honey", 1]], pantry: "cinnamon",
+    steps: ["Thaw the berries overnight in the fridge, or microwave them for 45 seconds.", "Stir half a scoop of whey into the cottage cheese.", "Top with berries, raw oats and honey."] },
+  { id: "eggmuffins", slot: "b", n: "Egg muffins with yogurt", time: "Batch: 30 min", ing: [["egg", 3], ["pepper", .25], ["onion", .25], ["spinach", 30], ["cheese", .5], ["yogurt", .5], ["berries", .5]], pantry: "salt, pepper, cooking spray",
+    steps: ["Heat the oven to 375°F and grease a 12-cup muffin tin.", "Dice the pepper and onion, chop the spinach, and divide among the cups with the cheese.", "Whisk the eggs with salt and pepper and pour them in until each cup is about ¾ full. Bake 20–22 min.", "Eat 3 a day, reheated for 30–45 seconds, with yogurt and berries. They keep 4 days in the fridge."] },
+
+  { id: "tunabowl", slot: "l", n: "Tuna rice bowl", time: "Meal prep: 25 min", ing: [["tuna", 1], ["rice", 75], ["edamame", 75], ["fveg", 100], ["oil", .5]], pantry: "soy sauce, sriracha, garlic powder",
+    steps: ["Cook the rice: 1 part rice to 2 parts water, covered, 18 min.", "Microwave or steam the edamame and frozen vegetables.", "Divide the rice, vegetables and edamame into containers. Add the tuna, soy sauce and sriracha when you eat so the rice doesn't go soggy."] },
+  { id: "lentilsoup", slot: "l", n: "Lentil vegetable soup", time: "Batch: 40 min", ing: [["lentils", 62.5], ["tomatoes", .25], ["onion", .25], ["fveg", 75], ["oil", .25], ["bread", 2], ["yogurt", .5]], pantry: "garlic, cumin, smoked paprika, bouillon cube",
+    steps: ["Sauté the diced onion in the oil for 4 min, then add the garlic and spices for 1 min.", "Add the rinsed lentils, tomatoes, 6 cups of water and the bouillon. Simmer 25 min.", "Add the frozen vegetables and cook 5 min more. Season with salt and a splash of vinegar.", "Serve with a big spoonful of Greek yogurt on top and 2 slices of toast."] },
+  { id: "salmoncakes", slot: "l", n: "Salmon cakes with slaw", time: "30 min", ing: [["csalmon", .5], ["egg", 1], ["oats", 20], ["oil", .5], ["slaw", 150], ["yogurt", .25], ["lime", .25]], pantry: "garlic powder, paprika, mustard",
+    steps: ["Drain the canned salmon and mash it with the egg, oats and seasoning. Form 2 patties per serving.", "Pan-fry in the oil 3–4 min per side until golden.", "Toss the slaw with Greek yogurt, lime juice, salt and pepper.", "Pack 2 cakes with a big portion of slaw. Reheat the cakes for 60 seconds."] },
+  { id: "tunawrap", slot: "l", n: "Tuna chickpea wraps", time: "10 min", ing: [["tuna", 1], ["chickpeas", .33], ["tortilla", 2], ["spinach", 50], ["yogurt", .25], ["lime", .25]], pantry: "mustard, dill, salt, pepper",
+    steps: ["Mash the tuna and chickpeas with Greek yogurt, mustard, lime juice and dill.", "Spread over two tortillas, add spinach and roll up.", "The filling keeps 3 days. Pack it separately if you prep ahead."] },
+  { id: "shrimpbowl", slot: "l", n: "Shrimp burrito bowl", time: "Meal prep: 25 min", ing: [["shrimp", 5], ["rice", 60], ["beans", .25], ["fveg", 100], ["salsa", 50], ["avocado", .25], ["lime", .25]], pantry: "cumin, chili powder, garlic powder",
+    steps: ["Cook the rice. Thaw the shrimp under cold water for 5 min, pat dry and toss with the spices.", "Sear the shrimp in a hot pan 1–2 min per side.", "Warm the beans and frozen vegetables (a corn and pepper mix works well).", "Build bowls with rice, beans, vegetables, shrimp and salsa. Add avocado and lime when you eat."] },
+
+  { id: "sheetsalmon", slot: "d", n: "Sheet-pan salmon & potatoes", time: "35 min", ing: [["salmon", 6], ["potato", 250], ["fveg", 150], ["oil", .5]], pantry: "garlic powder, paprika, salt, pepper",
+    steps: ["Heat the oven to 425°F. Cube the potatoes, toss with half the oil and seasoning, and roast 15 min.", "Add the thawed salmon and frozen broccoli to the pan, drizzle with the rest of the oil and season.", "Roast 12–15 min more, until the salmon flakes easily."] },
+  { id: "tacos", slot: "d", n: "Blackened tilapia tacos", time: "20 min", ing: [["tilapia", 7], ["tortilla", 2], ["slaw", 100], ["yogurt", .25], ["salsa", 30], ["lime", .5]], pantry: "chili powder, cumin, garlic powder, paprika",
+    steps: ["Pat the thawed tilapia dry and coat it with the spices and salt.", "Cook in a hot nonstick pan 3 min per side, then flake.", "Stir Greek yogurt with lime juice and a pinch of salt for the sauce.", "Fill warm tortillas with fish, slaw, salsa and sauce."] },
+  { id: "stirfry", slot: "d", n: "Tofu & veg stir-fry", time: "25 min", ing: [["tofu", 8], ["rice", 45], ["fveg", 200], ["edamame", 50], ["oil", .5]], pantry: "soy sauce, garlic, ginger, sriracha, cornstarch",
+    steps: ["Press the tofu in a towel for 10 min, cube it and toss with 1 tsp cornstarch.", "Fry the tofu in the oil until golden, about 8 min. Set aside.", "Stir-fry the frozen vegetables and edamame 5 min, then add the tofu back with 2 tbsp soy sauce, garlic, ginger and sriracha.", "Serve over rice."] },
+  { id: "shrimppasta", slot: "d", n: "Shrimp marinara pasta", time: "20 min", ing: [["shrimp", 5], ["pasta", 75], ["marinara", 150], ["spinach", 100], ["oil", .5], ["cheese", .5]], pantry: "garlic, red pepper flakes",
+    steps: ["Boil the pasta as the box says.", "Sauté garlic in the oil for 30 seconds, add the shrimp and cook 2 min per side.", "Add the marinara and spinach and simmer until the spinach wilts.", "Toss with the pasta and top with cheese."] },
+  { id: "cod", slot: "d", n: "Garlic-lime cod & rice", time: "25 min", ing: [["cod", 7], ["rice", 60], ["fveg", 150], ["oil", .5], ["yogurt", .25], ["lime", .5]], pantry: "garlic, dill, salt, pepper",
+    steps: ["Cook the rice and heat the oven to 400°F.", "Put the cod on a sheet pan, brush with oil, garlic, salt, pepper and lime juice. Bake 12–15 min.", "Steam frozen green beans or broccoli.", "Stir Greek yogurt with dill and lime for a sauce."] },
+  { id: "curry", slot: "d", n: "Lentil & sweet potato curry", time: "35 min", ing: [["lentils", 60], ["sweetpot", 200], ["coconut", .25], ["tomatoes", .25], ["spinach", 100], ["yogurt", .5], ["rice", 40]], pantry: "curry powder, garlic, ginger, salt",
+    steps: ["Sauté garlic, ginger and 2 tbsp curry powder for 1 min.", "Add the diced sweet potato, rinsed lentils, tomatoes, coconut milk and 3 cups of water. Simmer 25 min.", "Stir in the spinach until it wilts. Season with salt.", "Serve over rice with Greek yogurt on top."] },
+  { id: "friedrice", slot: "d", n: "Shrimp & egg fried rice", time: "20 min", ing: [["shrimp", 4], ["egg", 2], ["rice", 60], ["fveg", 150], ["oil", .5]], pantry: "soy sauce, garlic, green onion",
+    steps: ["Best with rice cooked a day ahead and chilled.", "Scramble the eggs in a hot pan and set aside.", "Cook the shrimp 2 min per side and set aside.", "Stir-fry the frozen peas and carrots in the oil for 3 min, add the rice and soy sauce, then fold the eggs and shrimp back in."] },
+];
+const RBY = Object.fromEntries(RECIPES.map(r => [r.id, r]));
+const SLOTS = {
+  b: { name: "Breakfast", serv: [4, 3], when: ["Sun–Wed", "Thu–Sat"] },
+  l: { name: "Lunch", serv: [4, 3], when: ["Sun–Wed · prep Sunday", "Thu–Sat · prep Wednesday night"] },
+  d: { name: "Dinner", serv: [2, 2, 2], when: ["Sun + Mon", "Tue + Wed", "Thu + Fri"] },
+};
+// every-week extras: post-workout yogurt + whey daily, pre-workout snack on 4 lifting days, 3 apples
+const FIXED = [["yogurt", 7], ["whey", 7], ["banana", 4], ["bread", 4], ["pb", 4], ["apple", 3]];
+
+function macros(r) {
+  return r.ing.reduce((m, [k, q]) => { const i = ING[k]; m.cost += i[2] * q; m.kcal += i[3] * q; m.p += i[4] * q; return m; }, { cost: 0, kcal: 0, p: 0 });
+}
+function weekStart(d = new Date()) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - x.getDay()); return x; }
+const weekIdx = ws => Math.round((ws - new Date(2026, 0, 4)) / 6048e5); // Sunday Jan 4, 2026 = week 0
+function defaultMenu(wi) {
+  const pick = (slot, k) => { const ids = RECIPES.filter(r => r.slot === slot).map(r => r.id), n = ids.length; return Array.from({ length: k }, (_, j) => ids[(((wi * k + j) % n) + n) % n]); };
+  return { b: pick("b", 2), l: pick("l", 2), d: pick("d", 3) };
+}
+function currentMenu() { const ws = weekStart(); return { ...defaultMenu(weekIdx(ws)), ...(cache.menus[iso(ws)] || {}) }; }
+function fmtQty(q, unit) {
+  if (unit === "g") return `${Math.round(q / 5) * 5} g`;
+  const r = Math.round(q * 4) / 4, w = Math.floor(r), f = { 0: "", .25: "¼", .5: "½", .75: "¾" }[r - w];
+  return `${w || !f ? w : ""}${f}${unit ? " " + unit : ""}`.trim();
+}
+function groceryList(m) {
+  const need = {};
+  const addQ = (k, q) => need[k] = (need[k] || 0) + q;
+  for (const s of ["b", "l", "d"]) m[s].forEach((id, i) => RBY[id].ing.forEach(([k, q]) => addQ(k, q * SLOTS[s].serv[i])));
+  FIXED.forEach(([k, q]) => addQ(k, q));
+  const rows = Object.entries(need).map(([k, q]) => { const i = ING[k]; return { k, name: i[0], unit: i[1], q, cost: i[2] * q, buy: i[7] ? 0 : Math.max(1, Math.ceil(q / i[5] - .1)), pkg: i[6], staple: i[7], aisle: i[8] }; });
+  const total = rows.reduce((t, r) => t + r.cost, 0) + SPICE_ALLOWANCE;
+  return { rows, total };
+}
+function todaysMeals(m) {
+  const dow = new Date().getDay();
+  return { b: m.b[dow <= 3 ? 0 : 1], l: m.l[dow <= 3 ? 0 : 1], d: dow === 6 ? null : m.d[Math.floor(dow / 2)] };
+}
+function swapRecipe(slot, i) {
+  const m = currentMenu(), ids = RECIPES.filter(r => r.slot === slot).map(r => r.id);
+  let j = ids.indexOf(m[slot][i]);
+  do { j = (j + 1) % ids.length; } while (m[slot].includes(ids[j]));
+  const next = { b: [...m.b], l: [...m.l], d: [...m.d] }; next[slot][i] = ids[j];
+  store.set("menus", iso(weekStart()), next);
+}
+function recipeCard(r, slot, i) {
+  const mc = macros(r), serv = SLOTS[slot].serv[i];
+  return `<article class="recipe">
+    <div class="ex-head"><div><span class="label">${SLOTS[slot].when[i]}</span><h3>${esc(r.n)}</h3>
+      <div class="chips num"><span>${Math.round(mc.kcal)} kcal</span><span>${Math.round(mc.p)} g protein</span><span>${money(mc.cost)}/serving</span></div></div>
+      <button class="secondary swap" data-swap="${slot}" data-i="${i}" aria-label="Swap ${esc(r.n)} for another recipe">Swap</button></div>
+    <details><summary>Ingredients &amp; steps · ${esc(r.time)} · makes ${serv}</summary>
+      <ul class="ing">${r.ing.map(([k, q]) => `<li><span>${esc(ING[k][0])}</span><span class="num muted">${fmtQty(q * serv, ING[k][1])}</span></li>`).join("")}<li><span class="muted">From the pantry: ${esc(r.pantry)}</span><span></span></li></ul>
+      <ol class="steps">${r.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol>
+      <p class="small muted" style="margin:0">Amounts are for all ${serv} servings this week.</p></details>
+  </article>`;
+}
+function renderMeals() {
+  const s = settings(), m = currentMenu(), t = todaysMeals(m), ws = weekStart();
+  const weekly = s.groceryBudget * 12 / 52, g = groceryList(m);
+  const checked = lsGet("pp:shop:" + iso(ws), {});
+  const dayTotals = [t.b, t.l, t.d].filter(Boolean).map(id => macros(RBY[id])).reduce((a, x) => ({ kcal: a.kcal + x.kcal, p: a.p + x.p }), W[scheduled()] ? { kcal: 530, p: 56 } : { kcal: 250, p: 47 }); // snack, plus pre-workout on lifting days
+  const st = g.total <= weekly ? ["good", "Within budget"] : ["bad", "Over budget"];
+  let h = `<section class="card"><div class="row"><h2>Today</h2><span class="small muted">Week of ${fmtDay(iso(ws))}</span></div>
+    <ul class="log" style="margin-top:6px">
+      <li><span><span class="label">Breakfast</span><br>${esc(RBY[t.b].n)}</span></li>
+      <li><span><span class="label">Lunch</span><br>${esc(RBY[t.l].n)}</span></li>
+      <li><span><span class="label">Snack</span><br>1 cup Greek yogurt + 1 scoop whey${W[scheduled()] ? "; banana + toast with peanut butter before lifting" : ""}</span></li>
+      <li><span><span class="label">Dinner</span><br>${t.d ? esc(RBY[t.d].n) : "Meal out (from the dining budget) or leftovers"}</span></li></ul>
+    <p class="small muted num" style="margin:6px 0 0">About ${Math.round(dayTotals.kcal / 10) * 10} kcal and ${Math.round(dayTotals.p)} g protein from home food. Target: ${s.calTarget.toLocaleString()} kcal, ${s.protein} g.</p></section>`;
+  for (const slot of ["b", "l", "d"]) {
+    h += `<section class="card stack"><h2>${SLOTS[slot].name}</h2>${m[slot].map((id, i) => recipeCard(RBY[id], slot, i)).join("")}
+      ${slot === "d" ? `<p class="small muted" style="margin:0">Saturday is your meal out, from the dining budget.</p>` : ""}</section>`;
+  }
+  h += `<section class="card"><div class="row"><h2>Grocery list</h2><span class="status ${st[0]}">${st[1]}</span></div>
+    <div class="row small num" style="margin-top:4px"><span>Food for the week: <b>${money(g.total)}</b></span><span class="muted">budget ${money(weekly)}/wk</span></div>
+    <div class="meter" aria-hidden="true"><i class="${g.total > weekly ? "over" : ""}" style="width:${Math.min(100, g.total / weekly * 100)}%"></i></div>
+    <p class="small muted" style="margin:8px 0 4px">Tap an item to check it off. The cost counts only what you'll eat this week. Leftover packages carry into next week.</p>`;
+  for (const a of AISLES) {
+    const rows = g.rows.filter(r => r.aisle === a).sort((x, y) => x.name.localeCompare(y.name));
+    if (!rows.length) continue;
+    h += `<h3 style="margin-top:12px">${a}</h3><ul class="shop">${rows.map(r => `<li><label><input type="checkbox" data-shop="${r.k}" ${checked[r.k] ? "checked" : ""}>
+      <span><b>${esc(r.name)}</b><br><span class="small muted num">${r.staple ? `Check the pantry · uses ${fmtQty(r.q, r.unit)}` : `Buy ${r.buy} × ${esc(r.pkg)} · uses ${fmtQty(r.q, r.unit)}`}</span></span>
+      <span class="num muted small">${money(r.cost)}</span></label></li>`).join("")}</ul>`;
+  }
+  h += `<p class="small muted" style="margin:10px 0 0">Includes ${money(SPICE_ALLOWANCE)} for spices and sauces. Prices are Aldi/Kroger estimates.</p></section>`;
+  return h;
+}
+
+// ---------- backup / restore ----------
+async function saveBackup() {
+  const data = { app: "plates-and-plates", version: APP_VERSION, savedAt: new Date().toISOString(), ...Object.fromEntries(COLS.map(c => [c, cache[c]])) };
+  const file = new File([JSON.stringify(data, null, 1)], `plates-backup-${iso()}.json`, { type: "application/json" });
+  try {
+    if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], title: "Plates & Plates backup" });
+    else { const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); }
+    lsSet("pp:lastBackup", iso()); render(); toast("Backup saved.");
+  } catch (e) { if (e?.name !== "AbortError") toast("Couldn't save the backup. Try again."); }
+}
+async function restoreBackup(f) {
+  try {
+    const d = JSON.parse(await f.text());
+    if (d.app !== "plates-and-plates") throw new Error("not a backup");
+    for (const c of COLS) { cache[c] = d[c] || {}; lsSet("pp:" + c, cache[c]); }
+    render(); toast(`Restored backup from ${fmtDay(d.savedAt.slice(0, 10))}.`);
+  } catch { toast("That file isn't a Plates & Plates backup."); }
+}
+
+// ---------- render + events ----------
+function render() {
+  $("#today").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === state.tab ? "page" : "false"));
+  const m = $("#main");
+  m.innerHTML = state.tab === "lift" ? renderLift() : state.tab === "body" ? renderBody() : state.tab === "food" ? renderFood() : state.tab === "meals" ? renderMeals() : renderPlan();
+}
+document.querySelector("nav.tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-tab]"); if (!b) return;
+  state.tab = b.dataset.tab; state.confirmDel = null; lsSet("pp:tab", state.tab); render(); window.scrollTo({ top: 0 });
+});
+const main = $("#main");
+main.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.w) { state.workout = t.dataset.w; render(); return; }
+  if (t.dataset.step) {
+    const ex = t.dataset.ex, e_ = W[state.workout].ex.find(x => x.id === ex), d = getDraft(state.workout);
+    const inp = $(`#w-${ex}`), cur = Number(inp.value) || 0, step = e_.inc || 5;
+    const v = Math.max(0, cur + Number(t.dataset.step) * step); inp.value = v; d.w[ex] = v; saveDraft(state.workout, d); return;
+  }
+  if (t.dataset.tick) {
+    const ex = t.dataset.tick, i = Number(t.dataset.i), e_ = W[state.workout].ex.find(x => x.id === ex), d = getDraft(state.workout);
+    const inp = $(`#r-${ex}-${i}`);
+    if (!inp.value) inp.value = e_.hi;
+    (d.r[ex] ||= [])[i] = inp.value; saveDraft(state.workout, d);
+    t.closest(".set").classList.add("done"); startTimer(e_.rest); return;
+  }
+  if (t.id === "finish") { finishWorkout(); return; }
+  if (t.id === "backup") { saveBackup(); return; }
+  if (t.id === "apply") { const s = settings(); store.set("settings", "main", { ...s, calTarget: s.calTarget + Number(t.dataset.d), changedAt: iso() }); toast("Calorie target updated."); return; }
+  if (t.dataset.swap) { swapRecipe(t.dataset.swap, Number(t.dataset.i)); return; }
+  if (t.dataset.kind) { state.spendKind = t.dataset.kind; render(); return; }
+  if (t.dataset.askw) { state.confirmDel = "w:" + t.dataset.askw; render(); return; }
+  if (t.dataset.delw) { state.confirmDel = null; store.del("weighins", t.dataset.delw); return; }
+  if (t.dataset.asks) { state.confirmDel = "s:" + t.dataset.asks; render(); return; }
+  if (t.dataset.dels) { state.confirmDel = null; store.del("spend", t.dataset.dels); return; }
+});
+main.addEventListener("input", e => {
+  const t = e.target;
+  if (t.dataset.wt) { const d = getDraft(state.workout); d.w[t.dataset.wt] = t.value; saveDraft(state.workout, d); }
+  if (t.dataset.rep) { const d = getDraft(state.workout); (d.r[t.dataset.rep] ||= [])[Number(t.dataset.i)] = t.value; saveDraft(state.workout, d); t.closest(".set").classList.toggle("done", t.value !== ""); }
+});
+main.addEventListener("change", e => {
+  if (e.target.id === "restore" && e.target.files[0]) { restoreBackup(e.target.files[0]); return; }
+  if (e.target.dataset.shop) { const k = "pp:shop:" + iso(weekStart()), c = lsGet(k, {}); c[e.target.dataset.shop] = e.target.checked; lsSet(k, c); return; }
+  if (e.target.id === "cardio") { const d = getDraft(state.workout); d.cardio = e.target.checked; saveDraft(state.workout, d); }
+});
+main.addEventListener("submit", e => {
+  e.preventDefault();
+  if (e.target.id === "wform") {
+    const v = parseFloat($("#wt").value);
+    if (!(v > 50 && v < 500)) { toast("Enter your weight in pounds, like 171.2."); return; }
+    $("#wt").blur(); store.set("weighins", iso(), { date: iso(), weight: Math.round(v * 10) / 10 }); toast("Weight logged.");
+  }
+  if (e.target.id === "sform") {
+    const v = parseFloat($("#amt").value);
+    if (!(v > 0)) { toast("Enter the amount you spent, like 42.18."); return; }
+    const note = $("#note").value.trim().slice(0, 60);
+    document.activeElement?.blur();
+    store.add("spend", { date: iso(), kind: state.spendKind, amount: Math.round(v * 100) / 100, note, at: new Date().toISOString() });
+    toast(`${money(v)} added to ${state.spendKind === "grocery" ? "groceries" : "dining"}.`);
+  }
+});
+render();
+
+// ---------- offline + updates ----------
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+let lastCheck = Date.now();
+async function checkForUpdate() {
+  try {
+    const r = await fetch("version.json?t=" + Date.now(), { cache: "no-store" });
+    const v = (await r.json()).version;
+    if (v && v !== APP_VERSION) {
+      const busy = Object.keys(lsGet(draftKey(state.workout || "LA"), { r: {} }).r || {}).length && state.tab === "lift";
+      if (busy) { toast("App update ready. It installs next time you open the app."); return; }
+      const reg = await navigator.serviceWorker?.getRegistration(); await reg?.update();
+      location.reload();
+    }
+  } catch {}
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && Date.now() - lastCheck > 60000) { lastCheck = Date.now(); checkForUpdate(); } });
+setTimeout(checkForUpdate, 3000);
+</script>
+
+</body>
+</html>
