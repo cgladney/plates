@@ -130,6 +130,7 @@ table.plan td:first-child { width: 56px; font-weight: 700 }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px }
 .chips span { font-size: 13px; padding: 2px 8px; border-radius: 6px; background: var(--soft); color: var(--muted); font-weight: 600 }
 .swap { flex: none }
+details + details { margin-top: -4px }
 details summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--blue); padding-block: 4px }
 ul.ing { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 4px; font-size: 15px }
 ul.ing li { display: flex; justify-content: space-between; gap: 10px }
@@ -204,7 +205,7 @@ const W = {
     { id: "lateral", n: "Lateral raises", unit: "lb per hand", sets: 3, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 },
     { id: "facepull", n: "Face pulls", sets: 2, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 } ] },
 };
-const APP_VERSION = "2026.10.11-2207";
+const APP_VERSION = "2026.10.11-2212";
 const ORDER = ["LA", "UA", "LB", "UB"];
 const DEFAULTS = { calTarget: 2200, protein: 160, fat: 65, groceryBudget: 350, diningBudget: 400 };
 
@@ -670,12 +671,19 @@ function swapRecipe(slot) {
   store.set("menus", iso(ws), { ...m, [slot]: ids[j] });
 }
 const SLOT_WHEN = { bt: "Breakfast · Wed–Sat", t1: "Dinner · Tue (fresh), Wed, Thu", t2: "Lunch · Wed, Thu, Fri", bf: "Breakfast · Sun, Mon, Tue", f1: "Dinner Fri (fresh), Sat · lunch Sun", f2: "Sat lunch · Sun dinner · Mon & Tue lunch" };
+function recipeSteps(r, serv) {
+  const rice = r.ing.filter(([k]) => k === "rice").reduce((a, [, q]) => a + q * serv, 0);
+  const steps = [...r.prep].sort((a, b) => a[0] - b[0]).map(([, t]) => t);
+  if (rice) steps.unshift(`Rinse and cook ${Math.round(rice / 5) * 5} g dry rice (about ${(rice / 185).toFixed(1)} cups) with twice as much water, covered, 18 min, then rest 10 min. On a cook night, the combined plan cooks all the rice at once.`);
+  return `<ol class="steps">${steps.map(t => `<li>${esc(t)}</li>`).join("")}</ol>`;
+}
 function recipeCard(slot, m) {
   const r = RBY[m[slot]], mc = macros(r), serv = SLOT[slot].serv;
   return `<article class="recipe">
     <div class="ex-head"><div><span class="label">${SLOT_WHEN[slot]}</span><h3>${esc(r.n)}</h3>
       <div class="chips num"><span>${Math.round(mc.kcal)} kcal</span><span>${Math.round(mc.p)} g protein</span><span>${money(mc.cost)}/serving</span><span>makes ${serv}</span></div></div>
       <button class="secondary swap" data-swap="${slot}" aria-label="Swap ${esc(r.n)} for another recipe">Swap</button></div>
+    <details><summary>Step-by-step</summary>${recipeSteps(r, serv)}<p class="small muted" style="margin:0">Makes ${serv} servings.</p></details>
     <details><summary>Ingredients, reheating &amp; technique</summary>
       <ul class="ing">${r.ing.map(([k, q]) => `<li><span>${esc(ING[k][0])}</span><span class="num muted">${fmtQty(q * serv, ING[k][1])}</span></li>`).join("")}<li><span class="muted">From the pantry: ${esc(r.pantry)}</span><span></span></li></ul>
       <p class="small" style="margin:0 0 6px"><b>Keeps:</b> ${esc(r.keeps)}. <b>Reheat:</b> ${esc(r.reheat)}</p>
@@ -704,7 +712,7 @@ function renderMeals() {
   const st = g.total <= weekly ? ["good", "Within budget"] : ["bad", "Over budget"];
   const ft = RBY[m.f1].tech, tt = RBY[m.t1].tech;
   let h = `<section class="card"><div class="row"><h2>Today</h2><span class="small muted">${now.toLocaleDateString(undefined, { weekday: "long" })}</span></div>
-    ${cookToday ? `<p class="banner" style="margin:8px 0 0">Cook night: about ${cookToday[1].mins} min. The plan is in ${cookToday[0]}'s cook below.</p>` : ""}
+    ${cookToday ? `<p class="banner" style="margin:8px 0 0">Cook night: about ${cookToday[1].mins} min. The combined plan is at the bottom of ${cookToday[0]}'s cook below.</p>` : ""}
     <ul class="log" style="margin-top:6px">
       ${meal("Breakfast", t.b)}${meal("Lunch", t.l)}
       <li><span><span class="label">Snack</span><br>1 cup Greek yogurt + 1 scoop whey${lift ? "; banana + toast with peanut butter before lifting" : ""}</span></li>
@@ -718,7 +726,7 @@ function renderMeals() {
     h += `<section class="card stack" id="cook-${day}"><div class="row"><h2>${label}</h2><span class="small muted num">~${plan.mins} min</span></div>
       <p class="small muted" style="margin:0">${note}</p>
       ${slots.map(sl => recipeCard(sl, m)).join("")}
-      <details${(day === "tue" && dow === 2) || (day === "fri" && dow === 5) ? " open" : ""}><summary>Step-by-step cook plan</summary>${plan.html}</details></section>`;
+      <details${(day === "tue" && dow === 2) || (day === "fri" && dow === 5) ? " open" : ""}><summary>Combined plan for the night (all 3 recipes in cooking order)</summary>${plan.html}</details></section>`;
   }
   const order = [2, 3, 4, 5, 6, 0, 1], dn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   h += `<section class="card"><h2>The week at a glance</h2><div style="overflow-x:auto"><table class="plan grid" style="margin-top:6px"><thead><tr><th></th><th>Breakfast</th><th>Lunch</th><th>Dinner</th></tr></thead><tbody>${order.map(d => {
