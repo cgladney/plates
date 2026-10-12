@@ -180,34 +180,51 @@ nav.tabs button[aria-current="page"] { color: var(--ink) }
 <script>
 // ---------- program ----------
 const W = {
-  LA: { name: "Lower A", c: "var(--red)", day: 1, cardio: "10 min easy cardio: bike or incline walk.", ex: [
+  LA: { name: "Lower A", c: "var(--red)", day: 1, cardio: "No extra cardio today. Conditioning is on Tuesday.", ex: [
+    { id: "boxjump", n: "Box jumps", unit: "jump up, step down", sets: 3, lo: 3, hi: 3, type: "power", rest: 90,
+      note: "Do these first, while you're fresh. Land softly and reset between jumps. Pick a box you clear easily; explosiveness matters, not height. End the set if your jumps slow down." },
     { id: "squat", n: "Back squat", sets: 3, lo: 6, hi: 8, type: "load", inc: 10, rest: 150 },
     { id: "rdl", n: "Romanian deadlift", sets: 3, lo: 8, hi: 10, type: "load", inc: 10, rest: 120 },
     { id: "lunge", n: "Walking lunges", unit: "lb per hand · reps per leg", sets: 2, lo: 10, hi: 12, type: "load", inc: 5, rest: 90 },
-    { id: "legcurl", n: "Leg curl", sets: 2, lo: 10, hi: 12, type: "load", inc: 5, rest: 90 },
-    { id: "plank", n: "Plank", sets: 3, lo: 30, hi: 45, type: "time", rest: 60 } ] },
-  UA: { name: "Upper A", c: "var(--blue)", day: 2, cardio: "20 min steady cardio at a pace where you can still talk.", ex: [
+    { id: "copenhagen", n: "Copenhagen plank", unit: "seconds per side · start with your knee on the bench", sets: 2, lo: 15, hi: 30, type: "time", rest: 45 } ] },
+  UA: { name: "Upper A", c: "var(--blue)", day: 2, cardio: "Soccer conditioning, about 20 minutes. It builds week by week.", ex: [
     { id: "bench", n: "Bench press", sets: 3, lo: 6, hi: 8, type: "load", inc: 5, rest: 150 },
     { id: "cablerow", n: "Seated cable row", sets: 3, lo: 8, hi: 10, type: "load", inc: 5, rest: 120 },
     { id: "ohp", n: "Overhead dumbbell press", unit: "lb per hand", sets: 2, lo: 8, hi: 10, type: "load", inc: 5, rest: 120 },
     { id: "pulldown", n: "Lat pulldown", sets: 2, lo: 10, hi: 12, type: "load", inc: 5, rest: 90 },
     { id: "curl", n: "Dumbbell curls", unit: "lb per hand", sets: 2, lo: 10, hi: 12, type: "load", inc: 5, rest: 60 },
     { id: "pushdown", n: "Triceps pushdown", sets: 2, lo: 10, hi: 12, type: "load", inc: 5, rest: 60 } ] },
-  LB: { name: "Lower B", c: "var(--yellow)", day: 4, cardio: "10 min easy cardio: bike or incline walk.", ex: [
+  UB: { name: "Upper B", c: "var(--green)", day: 5, cardio: "No intervals today, to keep your legs fresh around game days. Optional: 10 min easy bike to loosen up.", ex: [
+    { id: "pullup", n: "Pull-ups", unit: "lb of assistance (0 = bodyweight)", sets: 3, lo: 6, hi: 10, type: "assist", inc: 10, rest: 150 },
+    { id: "incline", n: "Incline dumbbell press", unit: "lb per hand", sets: 3, lo: 8, hi: 10, type: "load", inc: 5, rest: 120 },
+    { id: "dbrow", n: "One-arm dumbbell row", unit: "lb · reps per arm", sets: 3, lo: 10, hi: 12, type: "load", inc: 5, rest: 90 },
+    { id: "nordic", n: "Nordic hamstring curls", unit: "lower as slowly as you can · catch yourself with your hands", sets: 2, lo: 3, hi: 6, type: "reps", rest: 90,
+      up: "You hit 6 on both sets. Pause for 2 seconds halfway down, or add a third set." },
+    { id: "slrdl", n: "Single-leg RDL", unit: "lb per hand · reps per leg", sets: 2, lo: 8, hi: 10, type: "load", inc: 5, rest: 60 },
+    { id: "copenhagen", n: "Copenhagen plank", unit: "seconds per side · start with your knee on the bench", sets: 2, lo: 15, hi: 30, type: "time", rest: 45 },
+    { id: "lateral", n: "Lateral raises", unit: "lb per hand", sets: 2, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 },
+    { id: "facepull", n: "Face pulls", sets: 2, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 } ] },
+  LB: { name: "Lower B", c: "var(--yellow)", day: 6, optional: true, cardio: "Optional session. Skip it if your legs are still sore from Thursday.", ex: [
+    { id: "bounds", n: "Lateral bounds", unit: "per side", sets: 3, lo: 4, hi: 4, type: "power", rest: 60,
+      note: "Push off one leg sideways, land on the other and hold for a second. It builds the side-to-side power you use to cut and change direction." },
     { id: "deadlift", n: "Deadlift (trap bar or conventional)", sets: 3, lo: 5, hi: 5, type: "load", inc: 10, rest: 180 },
     { id: "legpress", n: "Leg press", sets: 3, lo: 10, hi: 12, type: "load", inc: 10, rest: 120 },
     { id: "bss", n: "Bulgarian split squat", unit: "lb per hand · reps per leg", sets: 2, lo: 8, hi: 10, type: "load", inc: 5, rest: 90 },
     { id: "calf", n: "Calf raises", sets: 3, lo: 12, hi: 15, type: "load", inc: 10, rest: 60 },
     { id: "kneeraise", n: "Hanging knee raises", sets: 3, lo: 10, hi: 15, type: "reps", rest: 60 } ] },
-  UB: { name: "Upper B", c: "var(--green)", day: 5, cardio: "Intervals: 5 min warm-up, then 6–8 rounds of 30s hard / 90s easy on a bike or rower.", ex: [
-    { id: "pullup", n: "Pull-ups", unit: "lb of assistance (0 = bodyweight)", sets: 3, lo: 6, hi: 10, type: "assist", inc: 10, rest: 150 },
-    { id: "incline", n: "Incline dumbbell press", unit: "lb per hand", sets: 3, lo: 8, hi: 10, type: "load", inc: 5, rest: 120 },
-    { id: "dbrow", n: "One-arm dumbbell row", unit: "lb · reps per arm", sets: 3, lo: 10, hi: 12, type: "load", inc: 5, rest: 90 },
-    { id: "lateral", n: "Lateral raises", unit: "lb per hand", sets: 3, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 },
-    { id: "facepull", n: "Face pulls", sets: 2, lo: 12, hi: 15, type: "load", inc: 5, rest: 60 } ] },
 };
-const APP_VERSION = "2026.10.11-2214";
-const ORDER = ["LA", "UA", "LB", "UB"];
+const LEAGUE_START = "2026-10-22"; // first game; games are Thursdays
+function conditioning(d = new Date()) {
+  const wk = Math.floor((parseISO(iso(d)) - new Date(2026, 9, 12)) / 6048e5);
+  const where = " Use a field, track or turf. Treadmill only? Do 10 rounds of 15 seconds fast, 45 seconds walking.";
+  if (wk <= 0) return "Build-up week: 6 × 60 m strides at 70–80% effort, walking back between each. Then 6 rounds of 15 seconds hard, 45 seconds easy." + where;
+  if (wk === 1) return "Game week, so keep it crisp, not exhausting: 6 × 20 m sprints at 90% with a full walk back, then 3 rounds of 3 minutes alternating 15 seconds hard and 15 seconds easy, with 2 minutes between rounds." + where;
+  return wk % 2 === 0
+    ? "Repeated sprints: 8 × 30 m at 90–95% with 30 seconds' rest, then 4 × 5-10-5 shuttles (sprint 5 m, turn, 10 m, turn, 5 m)." + where
+    : "Small-field intervals: 4 rounds of 4 minutes alternating 15 seconds hard and 15 seconds easy, with 2 minutes between rounds. That's what a 7v7 shift feels like." + where;
+}
+const APP_VERSION = "2026.10.11-2223";
+const ORDER = ["LA", "UA", "UB", "LB"];
 const DEFAULTS = { calTarget: 2200, protein: 160, fat: 65, groceryBudget: 350, diningBudget: 400 };
 
 // ---------- helpers ----------
@@ -270,6 +287,7 @@ const settings = () => ({ ...DEFAULTS, ...(cache.settings.main || {}) });
 
 // ---------- progression ----------
 function advise(e, L) {
+  if (e.type === "power") return { pill: "hold", label: "Quality", text: e.note };
   if (!L || !L.lastReps?.length) {
     if (e.type === "time") return { pill: "new", label: "First time", text: `Hold each set ${e.lo}–${e.hi} seconds.` };
     if (e.type === "reps") return { pill: "new", label: "First time", text: `Aim for ${e.lo}–${e.hi} controlled reps.` };
@@ -280,7 +298,7 @@ function advise(e, L) {
   const full = L.lastReps.length >= e.sets && L.lastReps.every(r => r >= e.hi);
   const missed = L.lastReps.some(r => r < e.lo);
   if (e.type === "time") return full ? { pill: "up", label: "+5 sec", text: `You held ${e.hi}s on every set. Add 5 seconds or a harder variation.` } : { pill: "hold", label: "Hold", text: `Build to ${e.hi}s on every set.` };
-  if (e.type === "reps") return full ? { pill: "up", label: "Harder", text: `You hit ${e.hi} on every set. Slow the lowering to 3 seconds or raise straight legs.` } : { pill: "hold", label: "Add reps", text: `Work toward ${e.hi} reps on every set.` };
+  if (e.type === "reps") return full ? { pill: "up", label: "Harder", text: e.up || `You hit ${e.hi} on every set. Slow the lowering to 3 seconds or raise straight legs.` } : { pill: "hold", label: "Add reps", text: `Work toward ${e.hi} reps on every set.` };
   if (full) {
     if (e.type === "assist") return L.weight > 0
       ? { pill: "up", label: `−${e.inc} lb assist`, text: `You hit ${e.sets}×${e.hi}. Use ${e.inc} lb less assistance.` }
@@ -306,8 +324,9 @@ function scheduled() {
   return ORDER.find(k => W[k].day === dow) || null;
 }
 function nextInRotation() {
-  const s = Object.values(cache.sessions).sort((a, b) => (a.date + a.savedAt).localeCompare(b.date + b.savedAt)).pop();
-  return s ? ORDER[(ORDER.indexOf(s.workout) + 1) % 4] : "LA";
+  const dow = new Date().getDay();
+  for (let i = 1; i <= 7; i++) { const k = ORDER.find(x => W[x].day === (dow + i) % 7 && !W[x].optional); if (k) return k; }
+  return "LA";
 }
 const draftKey = k => `pp:draft:${iso()}:${k}`;
 function getDraft(k) { return lsGet(draftKey(k), { w: {}, r: {}, cardio: false }); }
@@ -319,9 +338,11 @@ function renderLift() {
   state.workout = k;
   const w = W[k], d = getDraft(k);
   const doneToday = cache.sessions[`${iso()}_${k}`];
-  const intro = sched ? `Today is <b>${W[sched].name}</b> day.` : `Rest day on the schedule. Next in rotation: <b>${W[nextInRotation()].name}</b>.`;
+  const dow = new Date().getDay(), soccer = dow === 4 && iso() >= LEAGUE_START;
+  const intro = sched ? (W[sched].optional ? `Today is the optional <b>${W[sched].name}</b> session. Skip it if your legs are still sore from Thursday.` : `Today is <b>${W[sched].name}</b> day.`)
+    : `${soccer ? "Soccer day, no lifting." : "Rest day."} Next up: <b>${W[nextInRotation()].name}</b>.`;
   let h = `<p class="small muted" style="margin:0">${intro} ${doneToday ? "<b>Logged today ✓</b>" : ""}</p>
-  <div class="picker" role="group" aria-label="Workout">${ORDER.map(x => `<button class="pick" data-w="${x}" style="--c:${W[x].c}" aria-pressed="${x === k}"><span class="plate"></span>${W[x].name}<small>${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][W[x].day]}</small></button>`).join("")}</div>`;
+  <div class="picker" role="group" aria-label="Workout">${ORDER.map(x => `<button class="pick" data-w="${x}" style="--c:${W[x].c}" aria-pressed="${x === k}"><span class="plate"></span>${W[x].name}<small>${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][W[x].day]}${W[x].optional ? " · opt" : ""}</small></button>`).join("")}</div>`;
   for (const e of w.ex) {
     const L = cache.lifts[e.id], a = advise(e, L);
     const wt = d.w[e.id] ?? nextWeight(e, L);
@@ -340,7 +361,7 @@ function renderLift() {
         <button class="tick" data-tick="${e.id}" data-i="${i}" aria-label="Mark set ${i + 1} done and start rest timer">✓</button></div>`).join("")}</div>
     </section>`;
   }
-  h += `<section class="card cardio"><input type="checkbox" id="cardio" ${d.cardio ? "checked" : ""}><label for="cardio"><b>Cardio</b><br><span class="small muted">${esc(w.cardio)}</span></label></section>
+  h += `<section class="card cardio"><input type="checkbox" id="cardio" ${d.cardio ? "checked" : ""}><label for="cardio"><b>${k === "UA" ? "Soccer conditioning" : "Cardio"}</b><br><span class="small muted">${esc(k === "UA" ? conditioning() : w.cardio)}</span></label></section>
   <button class="primary" id="finish">${doneToday ? "Update today's workout" : "Finish workout"}</button>
   <p class="small muted" style="margin:0">Go up only when every set hits the top of the range. First 2 weeks: keep it easy and learn the movements. Every 6–8 weeks, take a lighter week with about half the sets.</p>`;
   return h;
@@ -468,9 +489,9 @@ function renderFood() {
 // ---------- plan tab ----------
 function renderPlan() {
   const s = settings();
-  const rows = [["Mon", "LA", ""], ["Tue", "UA", "Cook night"], ["Wed", null, "Rest or a 30–45 min walk"], ["Thu", "LB", ""], ["Fri", "UB", "Cook night"], ["Sat", null, "Rest, or 30–45 min of easy cardio"], ["Sun", null, "Rest"]];
+  const rows = [["Mon", "LA", ""], ["Tue", "UA", "Cook night"], ["Wed", null, "Rest"], ["Thu", null, "Soccer (league starts Oct 22). No lifting."], ["Fri", "UB", "Cook night"], ["Sat", "LB", "Optional"], ["Sun", null, "Rest"]];
   return `<section class="card"><h2>The week</h2><table class="plan" style="margin-top:6px"><tbody>${rows.map(([d, k, t]) => `<tr><td>${d}</td><td>${k ? `<span class="dot" style="--c:${W[k].c}"></span><b>${W[k].name}</b>${t ? ` <span class="small muted">· ${t}</span>` : ""}<br><span class="small muted">${esc(W[k].cardio)}</span>` : `<span class="muted">${t}</span>`}</td></tr>`).join("")}</tbody></table>
-    <p class="small muted" style="margin:8px 0 0">Plus 8–10k steps a day. Add cardio time slowly, about 10% a week.</p></section>
+    <p class="small muted" style="margin:8px 0 0">Plus 8–10k steps a day. One heavy leg day during the season keeps your legs fresh for games. Nordics and Copenhagen planks protect your hamstrings and groin, where soccer players most often get hurt.</p></section>
   <section class="card"><h2>Eating</h2><p class="small" style="margin:6px 0 0">Targets: ${s.calTarget.toLocaleString()} kcal average and ${s.protein} g protein a day. You cook Tuesday and Friday after lifting. The Meals tab has both cook plans, a technique of the week, and one grocery list. The menu rotates every week, and you can swap any recipe.</p></section>
   <section class="card"><h2>Your data</h2>
     <p class="small" style="margin:6px 0 10px">Everything is saved on this phone. Make a backup every week or two, and before you get a new phone. Send the backup file to Claude when you want a progress review.</p>
