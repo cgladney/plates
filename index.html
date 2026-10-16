@@ -228,7 +228,7 @@ function conditioning(d = new Date()) {
     ? "Repeated sprints: 8 × 30 m at 90–95% with 30 seconds' rest, then 4 × 5-10-5 shuttles (sprint 5 m, turn, 10 m, turn, 5 m)." + where
     : "Small-field intervals: 4 rounds of 4 minutes alternating 15 seconds hard and 15 seconds easy, with 2 minutes between rounds. That's what a 7v7 shift feels like." + where;
 }
-const APP_VERSION = "2026.10.11-2232";
+const APP_VERSION = "2026.10.16-1953";
 const ORDER = ["LA", "UA", "UB", "LB"];
 const DEFAULTS = { calTarget: 2200, protein: 160, fat: 65, groceryBudget: 350, diningBudget: 400 };
 
@@ -550,6 +550,11 @@ const ING = {
   miso: ["White miso paste", "tbsp", .21, 35, 2, 24, "14 oz tub", 1, "Pantry"],
   butter: ["Butter", "tbsp", .125, 100, 0, 32, "1 lb pack", 1, "Dairy & eggs"],
   lemon: ["Lemons", "", .5, 17, .6, 1, "each", 0, "Produce"],
+  celery: ["Celery", "stalks", .15, 6, .3, 10, "bunch", 0, "Produce"],
+  pineapple: ["Canned pineapple chunks", "can", 1.29, 300, 2, 1, "20 oz can", 0, "Canned & jarred"],
+  cornmeal: ["Yellow cornmeal", "g", .00275, 3.7, .08, 907, "2 lb bag", 1, "Bread & grains"],
+  jumboshells: ["Jumbo pasta shells", "g", .00526, 3.5, .12, 340, "12 oz box", 0, "Bread & grains"],
+  milk: ["Milk (1%)", "cup", .22, 105, 8, 16, "½ gallon", 0, "Dairy & eggs"],
 };
 const AISLES = ["Produce", "Frozen", "Dairy & eggs", "Canned & jarred", "Bread & grains", "Pantry"];
 const SPICE_ALLOWANCE = 4; // $/week for spices, sauces, condiments (same as the workbook)
@@ -639,9 +644,67 @@ const RECIPES = [
     reheat: "Microwave 2 min, or eat cold.",
     prep: [[1, "Press the tofu 15 min. Boil the pasta and drain."], [2, "Cube the tofu, toss in cornstarch and pan-fry in the oil until crisp, 8–10 min. Whisk peanut butter, soy sauce, lime juice, garlic, ginger, sriracha and hot water into a sauce. Cook the frozen vegetables 4 min and toss with the noodles and sauce."], [3, "Portion the noodles and keep the tofu on top so it stays crisper."]],
     tech: ["Crispy tofu", "Press out the water, coat in a thin layer of cornstarch, and fry in a single layer without moving the pieces for 2–3 minutes per side. Wet tofu or a crowded pan won't crisp."] },
+  // ---- from Under the Crabapple Tree (Northwestern Elementary, Crabapple community cookbook) ----
+  { id: "strata", kind: "b", n: "Veggie egg strata", active: 20, keeps: "4 days in the fridge", src: ["Karen's Egg Strata", "Anne Branan", 58],
+    ing: [["egg", 2], ["bread", 1], ["milk", .25], ["cottage", .25], ["cheese", .5], ["spinach", 30], ["pepper", .25], ["yogurt", .5]], pantry: "dry mustard or Dijon, salt, pepper",
+    reheat: "Microwave 60–90 sec. Eat with Greek yogurt on the side.",
+    prep: [[1, "Cube the bread into a greased baking dish and scatter the spinach and diced pepper over it. Whisk the eggs, milk, cottage cheese, mustard, salt and pepper, pour it over, top with the cheese, and let it soak at least 1 hour in the fridge (overnight is even better)."], [2, "Bake at 350°F about 45 min, until the center is set. Cover with foil if the top browns too fast."], [3, "Cool, cut into squares and refrigerate."]],
+    tech: ["Letting the bread soak", "Resting the strata lets the bread soak up the custard, so it bakes up puffy and evenly set instead of dry on top and wet underneath."] },
+  { id: "creole", kind: "fish", n: "Shrimp creole", active: 20, keeps: "3 days", src: ["Shrimp Creole", "Sarah Grice Seanor", 84],
+    ing: [["shrimp", 5], ["tomatoes", .5], ["onion", .25], ["pepper", .25], ["celery", 1], ["oil", .5], ["rice", 75]], pantry: "chili sauce or ketchup, garlic, hot sauce, a pinch of sugar, flour",
+    reheat: "Microwave 2 min, stirring halfway.",
+    prep: [[1, "Cook the diced onion, pepper and celery in the oil over medium-low heat about 10 min, until soft. Add garlic, the tomatoes, chili sauce and a pinch of sugar, then simmer covered 30–45 min. The original simmers for 2 hours; longer is richer if you have the time."], [2, "If it needs thickening, shake 1 tbsp flour with ¼ cup water and stir it in. Add the thawed shrimp and simmer just 3–4 min, until they curl."], [3, "Portion over rice."]],
+    tech: ["Building a creole base", "Onion, bell pepper and celery cooked slowly in fat are the base of most Louisiana cooking. Go low and slow until they're soft and sweet but not browned. That's where the flavor comes from."] },
+  { id: "parmfish", kind: "fish", n: "Parmesan-crusted baked fish", active: 15, keeps: "3 days", src: ["Simple Sour Creamed Roughy", "Karen Garner", 81],
+    ing: [["tilapia", 7], ["yogurt", .25], ["cheese", .5], ["bread", .5], ["potato", 200], ["fveg", 150], ["oil", .25]], pantry: "garlic powder, chives or green onion, paprika, salt, pepper",
+    reheat: "Microwave 60–90 sec at half power.",
+    prep: [[1, "Heat the oven to 400°F with a sheet pan inside. Roast the cubed potatoes with the oil for 15 min first."], [2, "Toast the bread and crumble it into crumbs. Mix the yogurt, Parmesan, crumbs, garlic powder and chives. Lay the seasoned fish on the hot greased pan, spread the topping over it, sprinkle with paprika, and bake 12–15 min beside the potatoes until the fish flakes. Steam the vegetables."], [3, "Portion fish, potatoes and vegetables."]],
+    tech: ["Preheating the pan", "Fish laid on a pan that's already hot starts cooking from the bottom right away instead of stewing in its own juices. The original recipe does this, and it's a good habit for anything you roast."] },
+  { id: "currysalmon", kind: "fish", n: "Honey-curry glazed salmon", active: 15, keeps: "3 days", src: ["Honey Curry Chicken", "Ann Hudson", 93],
+    ing: [["salmon", 6], ["honey", .5], ["butter", .5], ["sweetpot", 200], ["fveg", 150]], pantry: "mustard, curry powder, salt",
+    reheat: "Microwave 90 sec at half power.",
+    prep: [[1, "Heat the oven to 400°F. Roast the cubed sweet potatoes 25 min."], [2, "Melt the butter in a small pan, stir in the honey, about 1 tbsp mustard per 2 servings and the curry powder, and simmer 1–2 min until it thickens slightly. Brush it over the salmon and bake 12–15 min, brushing once more halfway. Steam the vegetables."], [3, "Portion salmon, sweet potatoes and vegetables."]],
+    tech: ["Reducing a glaze", "Simmering the glaze for a minute or two thickens it so it clings to the fish instead of running off. When it coats the back of a spoon, it's ready."] },
+  { id: "cajunshrimp", kind: "fish", n: "Cajun baked shrimp", active: 15, keeps: "3 days", src: ["Cajun Shrimp", "Susan Wootten and Glenda Kugler", 83],
+    ing: [["shrimp", 5], ["butter", 1], ["oil", .5], ["lemon", .25], ["rice", 60], ["fveg", 150]], pantry: "Worcestershire sauce, cayenne, garlic salt, coarse black pepper",
+    reheat: "Microwave 90 sec.",
+    prep: [[1, "Simmer the butter, oil, Worcestershire and cayenne for a few minutes, then let it cool slightly. Pour it over the thawed shrimp in a baking dish and let them marinate while the rice cooks (the original marinates 2 hours if you have time)."], [2, "Season with garlic salt and plenty of black pepper and bake at 400°F 10–12 min, stirring once. Steam green beans or broccoli."], [3, "Portion shrimp and sauce over rice, with lemon on the side."]],
+    tech: ["Using black pepper boldly", "This style of shrimp takes much more coarse black pepper than you'd expect, enough to see on every piece. Grind it fresh; pre-ground pepper tastes dusty by comparison."] },
+  { id: "honeychili", kind: "fish", n: "Honey-chili shrimp stir-fry", active: 20, keeps: "3 days", src: ["Honey Chili Chicken", "Carolyn Travers", 93],
+    ing: [["shrimp", 5], ["honey", .5], ["oil", .5], ["fveg", 200], ["rice", 60]], pantry: "cornstarch, soy sauce, lemon juice, chili garlic sauce, ginger, green onions",
+    reheat: "Microwave 90 sec.",
+    prep: [[2, "Toss the thawed, dried shrimp in a little cornstarch and salt and sear in the oil over high heat 1–2 min per side, then remove. Stir-fry the vegetables 3–4 min. Whisk the honey, soy sauce, lemon juice, chili sauce, ginger and 1 tsp cornstarch into ¼ cup water, pour it in and boil 1 min until glossy. Return the shrimp and add green onions."], [3, "Portion over rice."]],
+    tech: ["A cornstarch-thickened sauce", "Cornstarch only thickens once it boils. Stir the mixture in and let it bubble for a full minute until it turns glossy and clear."] },
+  { id: "teriyakisalmon", kind: "fish", n: "Pineapple teriyaki salmon", active: 15, keeps: "3 days", src: ["Pineapple Chicken Teriyaki", "Debbie Pierce", 95],
+    ing: [["salmon", 6], ["pineapple", .2], ["honey", .5], ["rice", 60], ["fveg", 150]], pantry: "soy sauce, molasses or brown sugar, cider vinegar, garlic",
+    reheat: "Microwave 90 sec at half power.",
+    prep: [[1, "Whisk the soy sauce, molasses, honey, vinegar, garlic and a splash of pineapple juice. Marinate the thawed salmon in it 20–30 min while the rice cooks."], [2, "Broil the salmon near the top of the oven 6–8 min, brushing with the marinade once, with the pineapple chunks alongside until they brown at the edges. Steam the vegetables."], [3, "Portion salmon, pineapple and vegetables over rice."]],
+    tech: ["Marinating fish", "Salt and acid season the surface. Fish only needs 20–30 minutes; hours can turn it mushy. Save the overnight soak from the original for chicken."] },
+  { id: "shells", kind: "veg", n: "Spinach & cottage cheese stuffed shells", active: 25, keeps: "5 days, or freeze", src: ["Stuffed Shells", "Barb Dyson and Lindsay Keanum", 79],
+    ing: [["jumboshells", 70], ["cottage", .75], ["egg", .25], ["spinach", 75], ["marinara", 150], ["cheese", .5]], pantry: "Italian seasoning, garlic, salt, pepper",
+    reheat: "Microwave 2–3 min, covered.",
+    prep: [[1, "Heat the oven to 350°F. Boil the shells 2 min short of the box time and drain."], [2, "Wilt the spinach in a pan, chop it and squeeze it dry, then mix it with the cottage cheese, egg and Italian seasoning. Spread a little sauce in a baking dish, fill the shells, nestle them in, and cover with the rest of the sauce and the mozzarella."], [3, "Bake 30 min until bubbling. Cool and portion, about 5 shells each."]],
+    tech: ["Squeezing out water", "Cooked spinach holds a lot of water. Squeeze it hard in a towel before mixing, or the filling turns watery and thins out the sauce."] },
+  { id: "tamale", kind: "veg", n: "Black bean tamale pie", active: 25, keeps: "5 days", src: ["Tamale Pie", "Cyndi O'Rourke", 79],
+    ing: [["beans", .33], ["lentils", 30], ["onion", .25], ["pepper", .25], ["tomatoes", .33], ["fveg", 75], ["cornmeal", 30], ["cheese", .5], ["yogurt", .5], ["oil", .25]], pantry: "garlic, chili powder, salt, a pinch of sugar",
+    reheat: "Microwave 2–3 min. Add yogurt after.",
+    prep: [[1, "Simmer the lentils 15 min until tender. Cook the onion and pepper in the oil until soft, add garlic and chili powder, then the beans, lentils, tomatoes and corn. Simmer 20 min until thick."], [2, "Whisk the cornmeal and salt into cold water (about 2½ times as much water as cornmeal), then cook over medium heat, stirring constantly, until thick, about 5 min. Stir in a little of the cheese."], [3, "Spread the filling in a baking dish, spoon the cornmeal over, top with the rest of the cheese and bake at 375°F 35–40 min. Cool and portion; add yogurt when you eat."]],
+    tech: ["Cooking cornmeal", "Whisk cornmeal into cold water before heating, as the original does, then stir constantly while it thickens. Adding it to hot water makes lumps."] },
+  { id: "teriyakitofu", kind: "veg", n: "Teriyaki pineapple tofu", active: 25, keeps: "5 days", src: ["Pineapple Chicken Teriyaki", "Debbie Pierce", 95],
+    ing: [["tofu", 8], ["pineapple", .2], ["honey", .5], ["oil", .25], ["edamame", 50], ["fveg", 150], ["rice", 45]], pantry: "soy sauce, molasses or brown sugar, cider vinegar, garlic, cornstarch",
+    reheat: "Microwave 2 min.",
+    prep: [[1, "Press the tofu 15 min. Whisk the soy sauce, molasses, honey, vinegar, garlic and a splash of pineapple juice for the sauce."], [2, "Cube the tofu, toss it in cornstarch and fry in the oil until golden. Add the pineapple and let it brown 2 min, then pour in the sauce and simmer until it coats everything. Steam the vegetables and edamame."], [3, "Portion over rice."]],
+    tech: ["Caramelizing fruit", "Leave the pineapple in the hot pan without stirring for a minute or two so its sugars brown. Browned pineapple tastes deeper and less sharp."] },
 ];
+const BOOK = "Under the Crabapple Tree";
 const RBY = Object.fromEntries(RECIPES.map(r => [r.id, r]));
-const POOL = { b: RECIPES.filter(r => r.kind === "b").map(r => r.id), fish: RECIPES.filter(r => r.kind === "fish").map(r => r.id), veg: RECIPES.filter(r => r.kind === "veg").map(r => r.id) };
+// rotation order. Weeks before Oct 20, 2026 keep the original order so menus already planned don't change.
+const POOL_V1 = { b: ["burrito", "eggmuffins", "oats", "cottagebowl", "pancakes"], fish: ["tunabowl", "salmoncakes", "shrimpbowl", "sheetsalmon", "scampi", "friedrice", "tacobowl", "misosalmon", "searcod"],
+  veg: ["lentilsoup", "curry", "stirfry", "chana", "chili", "peanutnoodles"] };
+const POOL = { b: ["strata", "oats", "cottagebowl", "pancakes", "burrito", "eggmuffins"],
+  fish: ["creole", "parmfish", "currysalmon", "salmoncakes", "cajunshrimp", "shrimpbowl", "honeychili", "sheetsalmon", "teriyakisalmon", "scampi", "friedrice", "tacobowl", "misosalmon", "tunabowl", "searcod"],
+  veg: ["shells", "tamale", "lentilsoup", "curry", "teriyakitofu", "peanutnoodles", "chili", "stirfry", "chana"] };
+const POOL_V2_WEEK = 41; // week of Tuesday, Oct 20, 2026
 // each week: Tuesday cook = breakfast (bt) + fish main (t1) + 5-day main (t2); Friday cook = breakfast (bf) + fish main (f1) + 5-day main (f2)
 const SLOT = {
   bt: { pool: "b", serv: 4, cook: "tue" }, t1: { pool: "fish", serv: 3, cook: "tue" }, t2: { pool: "veg", serv: 3, cook: "tue" },
@@ -667,7 +730,9 @@ function macros(r) {
 function weekStart(d = new Date()) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 5) % 7)); return x; }
 const weekIdx = ws => Math.round((ws - new Date(2026, 0, 6)) / 6048e5); // Tuesday Jan 6, 2026 = week 0
 function defaultMenu(wi) {
-  const at = (pool, i) => { const ids = POOL[pool]; return ids[((i % ids.length) + ids.length) % ids.length]; };
+  const pools = wi < POOL_V2_WEEK ? POOL_V1 : POOL, n = wi < POOL_V2_WEEK ? wi : wi - POOL_V2_WEEK;
+  const at = (pool, i) => { const ids = pools[pool]; return ids[((i % ids.length) + ids.length) % ids.length]; };
+  wi = n;
   return { bt: at("b", 2 * wi), bf: at("b", 2 * wi + 1), t1: at("fish", 2 * wi), f1: at("fish", 2 * wi + 1), t2: at("veg", 2 * wi), f2: at("veg", 2 * wi + 1) };
 }
 function menuFor(ws) { const saved = cache.menus[iso(ws)]; return { ...defaultMenu(weekIdx(ws)), ...(saved && saved.t1 ? saved : {}) }; }
@@ -707,14 +772,15 @@ function recipeSteps(r, serv) {
 function recipeCard(slot, m) {
   const r = RBY[m[slot]], mc = macros(r), serv = SLOT[slot].serv;
   return `<article class="recipe">
-    <div class="ex-head"><div><span class="label">${SLOT_WHEN[slot]}</span><h3>${esc(r.n)}</h3>
+    <div class="ex-head"><div><span class="label">${SLOT_WHEN[slot]}</span><h3>${esc(r.n)}</h3>${r.src ? `<div class="small muted">From ${esc(r.src[1])}'s ${esc(r.src[0])}, <i>${BOOK}</i>, p. ${r.src[2]}</div>` : ""}
       <div class="chips num"><span>${Math.round(mc.kcal)} kcal</span><span>${Math.round(mc.p)} g protein</span><span>${money(mc.cost)}/serving</span><span>makes ${serv}</span></div></div>
       <button class="secondary swap" data-swap="${slot}" aria-label="Swap ${esc(r.n)} for another recipe">Swap</button></div>
     <details><summary>Step-by-step</summary>${recipeSteps(r, serv)}<p class="small muted" style="margin:0">Makes ${serv} servings.</p></details>
     <details><summary>Ingredients, reheating &amp; technique</summary>
       <ul class="ing">${r.ing.map(([k, q]) => `<li><span>${esc(ING[k][0])}</span><span class="num muted">${fmtQty(q * serv, ING[k][1])}</span></li>`).join("")}<li><span class="muted">From the pantry: ${esc(r.pantry)}</span><span></span></li></ul>
       <p class="small" style="margin:0 0 6px"><b>Keeps:</b> ${esc(r.keeps)}. <b>Reheat:</b> ${esc(r.reheat)}</p>
-      <p class="small" style="margin:0"><b>Technique: ${esc(r.tech[0])}.</b> ${esc(r.tech[1])}</p></details>
+      <p class="small" style="margin:0"><b>Technique: ${esc(r.tech[0])}.</b> ${esc(r.tech[1])}</p>
+      ${r.src ? `<p class="small muted" style="margin:6px 0 0">Adapted from “${esc(r.src[0])}” by ${esc(r.src[1])}, in <i>${BOOK}</i> (Northwestern Elementary, Crabapple), p. ${r.src[2]}.</p>` : ""}</details>
   </article>`;
 }
 function cookPlan(day, m) {
